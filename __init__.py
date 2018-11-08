@@ -15,7 +15,7 @@ class Learning(MycroftSkill):
     def handle_learning(self, message):
         self.speak_dialog('learning')
 
-    @intent_file_handler('learning.intent').require('private.intent')
+    @intent_file_handler('private.intent')
     def handle_answers_thebest(self, message):
         self.speak_dialog('private')
 
