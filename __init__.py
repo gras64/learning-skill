@@ -16,32 +16,37 @@ class LearningSkill(MycroftSkill):
         self.local_path = ".private"
         self.public_path = ".public"
         self.privacy = ""
+        self.catego = ""
 
-    def initialize(self):
-        # Needs higher priority than general fallback skills
-        #self.register_fallback(self.handle_fallback, 2)
+    #def initialize(self):
 
     def get_category_response(self, dialog):
-                while True:
-                    catego = self.get_response(dialog)
-                    #more of categorys enter here
-                    if catego == ("humor.intent"):
-                        return
-                    elif catego == ("science.intent"):
-                        return
-                    elif catego == ("love.intent"):
-                        return
-                    else:
-                        self.speak_dialog("invalid.category")
+        while True:
+            catego = self.get_response(dialog)
+            #more of categorys enter here
+            if catego == ("humor.intent"):
+                return
+            elif catego == ("science.intent"):
+                return
+            elif catego == ("love.intent"):
+                return
+            else:
+                self.speak_dialog("invalid.category")
 
-    @intent_file_handler('learning.intent')
-    def handle_learning(self, message):
+    @intent_handler(IntentBuilder("LearningIntent").require("Learning.intent").optionally("Category").one_of('Humor', 'Science', 'Love' ).build())
+    def handle_learning_intent(self, message):
         self.speak_dialog('learning')
-
-    @intent_file_handler("private.intent")
-    def handle_private(self, message):
+        category = get_category_response(self, message)
+        
+    @intent_handler(IntentBuilder("PrivateIntent").require("Learning.intent").require("Private.intent").one_of('Humor', 'Science', 'Love' ).build())
+    def handle_private_intent(self, message):
         self.speak_dialog('private')
         category = get_category_response(self, message)
+
+    #@intent_file_handler("private.intent")
+    #def handle_private(self, message):
+    #    self.speak_dialog('private')
+        #category = get_category_response(self, message)
         
 #    def handle_fallback(self, message):
 #        LOG.debug("entering handle_fallback with utterance '%s'" %
