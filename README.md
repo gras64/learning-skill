@@ -1,5 +1,5 @@
 ## Learning
-
+its at beginning to work
 
 ## Description
 This skill teaches you to enable knowledge and humor and to give mycroft a personality
@@ -14,4 +14,10 @@ This skill teaches you to enable knowledge and humor and to give mycroft a perso
 ## Credits
 gras64
 
+##To do
+It is my first Skill
 
+- ask category
+- ask question keywords and a answer
+- make the language files
+- as fallback
