@@ -54,13 +54,13 @@ class LearningSkill(MycroftSkill):
         catego = self.get_response("begin.private")
         if catego in self._humor_words:
             self.speak("humor")
-            Category = humor
+            Category = "humor"
         elif catego in self._science_words:
             self.speak("science")
-            Category = science
+            Category = "science"
         elif catego in self._love_words:
             self.speak("love")
-            Category = love
+            Category = "love"
         elif catego in self._cancel_words:
             self.speak("cancel")
             return
@@ -76,23 +76,23 @@ class LearningSkill(MycroftSkill):
         answer = self.get_response("answer")
         if not answer:
             return  # user cancelled
-        self.speak("save.learn",
-                    data={"question": question,
-                          "answer": answer},
-                           expect_response=True)
+        self.speak_dialog("save.learn",
+                          data={"question": question,
+                                "answer": answer},
+                                expect_response=True)
 
     @intent_file_handler('Learning.intent')
     def handle_interaction(self, message):
         catego = self.get_response("begin.learning")
         if catego in self._humor_words:
             self.speak("humor")
-            Category = humor
+            Category = "humor"
         elif catego in self._science_words:
             self.speak("science")
-            Category = science
+            Category = "science"
         elif catego in self._love_words:
             self.speak("love")
-            Category = love
+            Category = "love"
         elif catego in self._cancel_words:
             self.speak("cancel")
             return
@@ -108,10 +108,10 @@ class LearningSkill(MycroftSkill):
         answer = self.get_response("answer")
         if not answer:
             return  # user cancelled
-        self.speak("save.learn",
-                    data={"question": question,
-                          "answer": answer},
-                           expect_response=True)
+        self.speak_dialog('save.learn',
+                          data={"question": question,
+                                "answer": answer},
+                                expect_response=True)
 
     # @intent_file_handler("private.intent")
     # def handle_private(self, message):
