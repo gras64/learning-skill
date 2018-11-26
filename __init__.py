@@ -64,7 +64,7 @@ class LearningSkill(MycroftSkill):
         elif catego in self._love_words:
             self.speak("love")
         elif catego in self._cancel_words:
-            self.speak("stop")
+            self.speak("cancel")
             return
         else:
             self.speak("invalid.category")
@@ -76,8 +76,9 @@ class LearningSkill(MycroftSkill):
         if not answer:
             return  # user cancelled
         self.speak("save.learn",
-                                dict(question=question,
-                                     answer=answer))
+                    data={"question": question,
+                          "answer": answer},
+                           expect_response=True)
 
     # @intent_file_handler("private.intent")
     # def handle_private(self, message):
