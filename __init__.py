@@ -1,5 +1,5 @@
 from adapt.intent import IntentBuilder
-from os.path import dirname
+from os.path import join, dirname, abspath
 from mycroft import MycroftSkill, intent_handler, intent_file_handler
 from mycroft.audio import wait_while_speaking
 from mycroft.util.log import LOG, getLogger
@@ -20,37 +20,65 @@ class LearningSkill(MycroftSkill):
         self.catego = ""
         self.Category = ""
 
-        # def initialize(self):
+    def initialize(self):
+#        self.scheduler = BackgroundScheduler()
+#        self.scheduler.start()
 
-    def get_category_response(self, message):
-        while True:
-            catego = self.get_response(message)
-            # more of categorys enter here
-            if catego == ("humor.intent"):
-                return
-            elif catego == ("science.intent"):
-                return
-            elif catego == ("love.intent"):
-                return
-            else:
-                self.speak_dialog("invalid.category")
+#        self._routines = defaultdict(dict)
+#        self._routines.update(self._load_routine_data())
 
-    @intent_handler(IntentBuilder("").require("Learning")
-                    .optionally("Category")
-                    .build())
-    def handle_learning_intent(self, message):
-        self.speak_dialog('begin.learning')
-        Category = self.get_category_response(self, message)
+#        self._routine_to_sched_id_map = {}
+#        self._register_routines()
 
-    @intent_handler(IntentBuilder("").require("Learning")
-                    .require("Private")
-                    .optionally("Category")
-                    .one_of('Humor', 'Science', 'Love')
-                    .build())
+        path = dirname(abspath(__file__))
+
+        path_to_humor_words = join(path, 'vocab', self.lang, 'Humor.voc')
+        self._humor_words = self._lines_from_path(path_to_humor_words)
+
+        path_to_science_words = join(path, 'vocab', self.lang, 'Science.voc')
+        self._science_words = self._lines_from_path(path_to_science_words)
+
+        path_to_love_words = join(path, 'vocab', self.lang, 'Love.voc')
+        self._love_words = self._lines_from_path(path_to_love_words)
+
+        path_to_cancel_words =join(path, 'vocab', self.lang, 'Cancel.voc')
+        self._cancel_words = self._lines_from_path(path_to_cancel_words)
+
+    def _lines_from_path(self, path):
+        with open(path, 'r') as file:
+            lines = [line.strip().lower() for line in file]
+            return lines
+
     def handle_private_intent(self, message):
         self.speak_dialog('begin.private')
         Category = self.get_category_response(self, message)
         self.speak_dialog('Category')
+
+    @intent_file_handler('Learning.intent')
+    def handle_interaction(self, message):
+        catego = self.get_response("begin.learning")
+        if catego in self._humor_words:
+            self.speak("humor")
+        elif catego in self._science_words:
+            self.speak("science")
+        elif catego in self._love_words:
+            self.speak("love")
+        elif catego in self._cancel_words:
+            self.speak("stop")
+            return
+        else:
+            self.speak("invalid.category")
+            return catego
+        question = self.get_response("question")
+        if not question:
+            return  # user cancelled
+        answer = self.get_response("answer")
+        if not answer:
+            return  # user cancelled
+        self.speak("save.learn",
+                                dict(question=question,
+                                     answer=answer))
+
     # @intent_file_handler("private.intent")
     # def handle_private(self, message):
     #    self.speak_dialog('private')
