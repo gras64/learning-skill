@@ -32,6 +32,5 @@ gras64
 ##To do
 It is my first Skill
 
-- ask question keywords and a answer
 - make the language files
 - as fallback
