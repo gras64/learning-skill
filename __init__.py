@@ -49,10 +49,34 @@ class LearningSkill(MycroftSkill):
             lines = [line.strip().lower() for line in file]
             return lines
 
-    def handle_private_intent(self, message):
-        self.speak_dialog('begin.private')
-        Category = self.get_category_response(self, message)
-        self.speak_dialog('Category')
+    @intent_file_handler('Private.intent')
+    def handle_interaction(self, message):
+        catego = self.get_response("begin.learning")
+        if catego in self._humor_words:
+            self.speak("humor")
+        elif catego in self._science_words:
+            self.speak("science")
+        elif catego in self._love_words:
+            self.speak("love")
+        elif catego in self._cancel_words:
+            self.speak("cancel")
+            return
+        else:
+            self.speak("invalid.category")
+            return catego
+        question = self.get_response("question")
+        if not question:
+            return  # user cancelled
+        keywords = self.get_response("keywords")
+        if not keywords:
+            return  # user cancelled
+        answer = self.get_response("answer")
+        if not answer:
+            return  # user cancelled
+        self.speak("save.learn",
+                    data={"question": question,
+                          "answer": answer},
+                           expect_response=True)
 
     @intent_file_handler('Learning.intent')
     def handle_interaction(self, message):
@@ -71,6 +95,9 @@ class LearningSkill(MycroftSkill):
             return catego
         question = self.get_response("question")
         if not question:
+            return  # user cancelled
+        keywords = self.get_response("keywords")
+        if not keywords:
             return  # user cancelled
         answer = self.get_response("answer")
         if not answer:
