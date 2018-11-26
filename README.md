@@ -14,6 +14,17 @@ This skill teaches you to enable knowledge and humor and to give mycroft a perso
  - "I tell you something private"
  - "Please do not say what I'm talking about"
 
+## conversation example
+ you "Do you want to learn something"
+ mycroft "I like to learn. Which category is it?"
+ you "humor"
+ mycroft "what is your question"
+ you "do you know siri"
+ mycroft "give me keywords"
+ you "know siri"
+ mycroft "what should I know about it"
+ you "I have never seen her"
+ mycroft "So I'm supposed to answer the question "do you know siri" with "I have never seen her"?
 
 ## Credits
 gras64
