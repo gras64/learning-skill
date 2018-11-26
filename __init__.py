@@ -41,7 +41,7 @@ class LearningSkill(MycroftSkill):
         path_to_love_words = join(path, 'vocab', self.lang, 'Love.voc')
         self._love_words = self._lines_from_path(path_to_love_words)
 
-        path_to_cancel_words =join(path, 'vocab', self.lang, 'Cancel.voc')
+        path_to_cancel_words = join(path, 'vocab', self.lang, 'Cancel.voc')
         self._cancel_words = self._lines_from_path(path_to_cancel_words)
 
     def _lines_from_path(self, path):
@@ -51,13 +51,16 @@ class LearningSkill(MycroftSkill):
 
     @intent_file_handler('Private.intent')
     def handle_interaction(self, message):
-        catego = self.get_response("begin.learning")
+        catego = self.get_response("begin.private")
         if catego in self._humor_words:
             self.speak("humor")
+            Category = humor
         elif catego in self._science_words:
             self.speak("science")
+            Category = science
         elif catego in self._love_words:
             self.speak("love")
+            Category = love
         elif catego in self._cancel_words:
             self.speak("cancel")
             return
@@ -83,10 +86,13 @@ class LearningSkill(MycroftSkill):
         catego = self.get_response("begin.learning")
         if catego in self._humor_words:
             self.speak("humor")
+            Category = humor
         elif catego in self._science_words:
             self.speak("science")
+            Category = science
         elif catego in self._love_words:
             self.speak("love")
+            Category = love
         elif catego in self._cancel_words:
             self.speak("cancel")
             return
