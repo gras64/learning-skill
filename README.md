@@ -9,6 +9,10 @@ This skill teaches you to enable knowledge and humor and to give mycroft a perso
  - "Do you already know this"
  - "There you can learn something"
  - "I show you something"
+ 
+ - "can you keep a secret"
+ - "I tell you something private"
+ - "Please do not say what I'm talking about"
 
 
 ## Credits
