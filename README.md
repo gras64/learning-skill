@@ -26,11 +26,17 @@ This skill teaches you to enable knowledge and humor and to give mycroft a perso
  - you "I have never seen her"
  - mycroft "So I'm supposed to answer the question "do you know siri" with "I have never seen her"?
 
+
+## Save Data
+ - Save Data To /home/pi/.mycroft/skills/LearningSkill/public/humor/en-us/dialog/know.siri.dialog
+ - Save Data To /home/pi/.mycroft/skills/LearningSkill/public/humor/en-us/vocab/know.siri.intent
+ - You can edit the path at home.mycroft.ai.
+
 ## Credits
+
 gras64
 
 ##To do
 It is my first Skill
 
-- make the language files
 - as fallback
