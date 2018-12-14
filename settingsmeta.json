@@ -24,14 +24,14 @@
                     {
                         "name": "public_path",
                         "type": "text",
-                        "label": "upload path",
-                        "value": ".public"
+                        "label": "public path",
+                        "value": "/home/pi/.mycroft/skills/LearningSkill/public"
                     },
                     {
                         "name": "local_path",
                         "type": "text",
                         "label": "internel path",
-                        "value": ".private"
+                        "value": "/home/pi/.mycroft/skills/LearningSkill/private"
                     }
                 ]
             }

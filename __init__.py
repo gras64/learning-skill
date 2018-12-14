@@ -1,5 +1,6 @@
 from adapt.intent import IntentBuilder
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, os
+from mycroft.messagebus.message import Message
 from mycroft import MycroftSkill, intent_handler, intent_file_handler
 from mycroft.audio import wait_while_speaking
 from mycroft.util.log import LOG, getLogger
@@ -14,8 +15,9 @@ class LearningSkill(MycroftSkill):
     def __init__(self):
         super(LearningSkill, self).__init__("LearningSkill")
         self.enable_fallback = True
-        self.local_path = ".private"
-        self.public_path = ".public"
+        self.local_path = "/home/pi/.mycroft/skills/LearningSkill/private"
+        self.public_path = "/home/pi/.mycroft/skills/LearningSkill/public"
+        self.owmlang = "en"
         self.privacy = ""
         self.catego = ""
         self.Category = ""
@@ -29,6 +31,8 @@ class LearningSkill(MycroftSkill):
 
 #        self._routine_to_sched_id_map = {}
 #        self._register_routines()
+
+
 
         path = dirname(abspath(__file__))
 
@@ -44,6 +48,7 @@ class LearningSkill(MycroftSkill):
         path_to_cancel_words = join(path, 'vocab', self.lang, 'Cancel.voc')
         self._cancel_words = self._lines_from_path(path_to_cancel_words)
 
+
     def _lines_from_path(self, path):
         with open(path, 'r') as file:
             lines = [line.strip().lower() for line in file]
@@ -53,13 +58,13 @@ class LearningSkill(MycroftSkill):
     def handle_interaction(self, message):
         catego = self.get_response("begin.private")
         if catego in self._humor_words:
-            self.speak("humor")
+            #self.speak("humor")
             Category = "humor"
         elif catego in self._science_words:
-            self.speak("science")
+            #self.speak("science")
             Category = "science"
         elif catego in self._love_words:
-            self.speak("love")
+            #self.speak("love")
             Category = "love"
         elif catego in self._cancel_words:
             self.speak("cancel")
@@ -84,14 +89,15 @@ class LearningSkill(MycroftSkill):
     @intent_file_handler('Learning.intent')
     def handle_interaction(self, message):
         catego = self.get_response("begin.learning")
+        privacy = self.public_path
         if catego in self._humor_words:
-            self.speak("humor")
+            #self.speak("humor")
             Category = "humor"
         elif catego in self._science_words:
-            self.speak("science")
+            #self.speak("science")
             Category = "science"
         elif catego in self._love_words:
-            self.speak("love")
+            #self.speak("love")
             Category = "love"
         elif catego in self._cancel_words:
             self.speak("cancel")
@@ -108,10 +114,22 @@ class LearningSkill(MycroftSkill):
         answer = self.get_response("answer")
         if not answer:
             return  # user cancelled
-        self.speak_dialog('save.learn',
+        answer_path = privacy+"/"+Category+"/"+"dialog"+"/"+self.lang
+        question_path = privacy+"/"+Category+"/"+"vocab"+"/"+self.lang
+        if not os.path.isdir(answer_path):
+            os.makedirs(answer_path)
+        if not os.path.isdir(question_path):
+            os.makedirs(question_path)
+        self.speak_dialog("save.learn",
                           data={"question": question,
                                 "answer": answer},
                                 expect_response=True)
+        save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
+        save_dialog.write(answer+"\n")
+        save_dialog.close()
+        save_intent = open(question_path+"/"+keywords.replace(" ", ".")+".intent", "a")
+        save_intent.write(question+"\n")
+        save_intent.close()
 
     # @intent_file_handler("private.intent")
     # def handle_private(self, message):
