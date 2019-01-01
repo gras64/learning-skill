@@ -9,8 +9,14 @@
                         "name": "enable_fallback",
                         "type": "checkbox",
                         "label": "enable fallback",
-                        "value": "true",
+                        "value": "True",
                         "placeholder": "demo prompt in the input box"
+                    },
+                    {
+                        "name": "allow_category",
+                        "type": "text",
+                        "label": "allow category",
+                        "value": "humor,love,sience"
                     }
                 ]
             },

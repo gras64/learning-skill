@@ -1,38 +1,38 @@
 from adapt.intent import IntentBuilder
-from os.path import join, dirname, abspath, os
+from os.path import join, dirname, abspath, os, sys
 from mycroft.messagebus.message import Message
 from mycroft import MycroftSkill, intent_handler, intent_file_handler
+from mycroft.filesystem import FileSystemAccess
 from mycroft.audio import wait_while_speaking
+from mycroft.skills.core import FallbackSkill
 from mycroft.util.log import LOG, getLogger
-import requests
+import random
 
 _author__ = 'gras64'
 
 LOGGER = getLogger(__name__)
 
 
-class LearningSkill(MycroftSkill):
+class LearningSkill(FallbackSkill):
     def __init__(self):
         super(LearningSkill, self).__init__("LearningSkill")
-        self.enable_fallback = True
-        self.local_path = "/home/pi/.mycroft/skills/LearningSkill/private"
-        self.public_path = "/home/pi/.mycroft/skills/LearningSkill/public"
-        self.owmlang = "en"
+        #self.settings["enable_fallback"  ] = "True"
+        self.enable_fallback = "True"
+        #self.settings["local_path"  ] = "/home/pi/.mycroft/skills/LearningSkill/private"
+        self.local_path = "/home/pi/.mycroft/learning-skill/private"
+        #self.settings["public_path"  ] = "/home/pi/.mycroft/skills/LearningSkill/public"
+        self.public_path = "/home/pi/.mycroft/learning-skill/public"
+        #self.settings["allow_category"  ] = "humor,love,science"
+        self.allow_category = ["humor", "love", "science"]
+        #self.intent_path = "/home/pi/.mycroft/skills/LearningSkill/public/humor/vocab/de-de/hallo"
         self.privacy = ""
         self.catego = ""
         self.Category = ""
 
+
     def initialize(self):
-#        self.scheduler = BackgroundScheduler()
-#        self.scheduler.start()
-
-#        self._routines = defaultdict(dict)
-#        self._routines.update(self._load_routine_data())
-
-#        self._routine_to_sched_id_map = {}
-#        self._register_routines()
-
-
+        #if self.enable_fallback == "True":
+        #self.settings.set_changed_callback(self.on_websettings_changed)
 
         path = dirname(abspath(__file__))
 
@@ -48,11 +48,52 @@ class LearningSkill(MycroftSkill):
         path_to_cancel_words = join(path, 'vocab', self.lang, 'Cancel.voc')
         self._cancel_words = self._lines_from_path(path_to_cancel_words)
 
+        self.register_fallback(self.handle_fallback, 10)
+
 
     def _lines_from_path(self, path):
         with open(path, 'r') as file:
             lines = [line.strip().lower() for line in file]
             return lines
+
+    def read_intent_lines(self, name, int_path):
+        #self.speak(int_path)
+        with open(self.find_resource(name + '.intent', int_path)) as f:
+            #self.log.info('load intent: ' + f)
+            return filter(bool, map(str.strip, f.read().split('\n')))
+
+
+    def handle_fallback(self, message):
+
+        path = self.public_path
+        utterance = message.data['utterance']
+
+        for f in self.allow_category:
+            int_path = path+"/"+f+"/"+"vocab"+"/"+self.lang
+            try:
+                self.report_metric('failed-intent', {'utterance': utterance})
+            except:
+                self.log.exception('Error reporting metric')
+
+            for a in os.listdir(int_path):
+                i = a.replace(".intent", "")
+                for l in self.read_intent_lines(i, int_path):
+                    if utterance.startswith(l):
+                        self.log.info('Fallback type: ' + i)
+                        dig_path = path+"/"+f
+                        e = join(dig_path, 'dialog', self.lang, i +'.dialog')
+                        self.log.info('Load Falback File: ' + e)
+                        lines = open(e).read().splitlines()
+                        i =random.choice(lines)
+                        self.speak_dialog(i)
+                        return True
+            self.speak_dialog('unknown')
+            return True
+        return True
+
+        #path_to_private_files = join(public_path, 'vocab', self.lang, '*.intent')
+        #self._humor_words = self._lines_from_path(path_to_private_files)
+
 
     @intent_file_handler('Private.intent')
     def handle_interaction(self, message):
@@ -67,10 +108,10 @@ class LearningSkill(MycroftSkill):
             #self.speak("love")
             Category = "love"
         elif catego in self._cancel_words:
-            self.speak("cancel")
+            self.speak_dialog("cancel")
             return
         else:
-            self.speak("invalid.category")
+            self.speak_dialog("invalid.category")
             return catego
         question = self.get_response("question")
         if not question:
@@ -100,10 +141,10 @@ class LearningSkill(MycroftSkill):
             #self.speak("love")
             Category = "love"
         elif catego in self._cancel_words:
-            self.speak("cancel")
+            self.speak_dialog("cancel")
             return
         else:
-            self.speak("invalid.category")
+            self.speak_dialog("invalid.category")
             return catego
         question = self.get_response("question")
         if not question:
