@@ -1,5 +1,5 @@
 ## Learning
-its at beginning to work
+its at work
 
 ## Description
 This skill teaches you to enable knowledge and humor and to give mycroft a personality.
