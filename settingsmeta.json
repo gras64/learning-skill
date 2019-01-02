@@ -16,7 +16,7 @@
                         "name": "allow_category",
                         "type": "text",
                         "label": "allow category",
-                        "value": "humor,love,sience"
+                        "value": "humor, love, science"
                     }
                 ]
             },
@@ -31,13 +31,13 @@
                         "name": "public_path",
                         "type": "text",
                         "label": "public path",
-                        "value": "/home/pi/.mycroft/skills/LearningSkill/public"
+                        "value": "/home/pi/.mycroft/learning-skill/public"
                     },
                     {
                         "name": "local_path",
                         "type": "text",
                         "label": "internel path",
-                        "value": "/home/pi/.mycroft/skills/LearningSkill/private"
+                        "value": "/home/pi/.mycroft/learning-skill/private"
                     }
                 ]
             }
