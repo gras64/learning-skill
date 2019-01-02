@@ -1,8 +1,11 @@
 ## Learning
-its at beginning to work
+its at work
 
 ## Description
-This skill teaches you to enable knowledge and humor and to give mycroft a personality
+This skill teaches you to enable knowledge and humor and to give mycroft a personality.
+
+a little hint:
+if you use the same keyword while learning, there is also a random answer
 
 ## Examples
  - "Do you want to learn something"
@@ -28,8 +31,8 @@ This skill teaches you to enable knowledge and humor and to give mycroft a perso
 
 
 ## Save Data
- - Save Data To /home/pi/.mycroft/skills/LearningSkill/public/humor/en-us/dialog/know.siri.dialog
- - Save Data To /home/pi/.mycroft/skills/LearningSkill/public/humor/en-us/vocab/know.siri.intent
+ - Save Data To /home/pi/.mycroft/learning-skill/public/humor/en-us/dialog/know.siri.dialog
+ - Save Data To /home/pi/.mycroft/learning-skill/public/humor/en-us/vocab/know.siri.intent
  - You can edit the path at home.mycroft.ai.
 
 ## Credits
@@ -39,4 +42,4 @@ gras64
 ##To do
 It is my first Skill
 
-- as fallback
+- upload to mycroft
