@@ -2,10 +2,10 @@
   "utterance": "do you want to learn something secret",
   "intent_type": "handle_interaction",
   "intent": {
-    "Query": "do you want",
+    "Query": "Query",
     "Learning": "learn",
     "Private": "secret"
   },
-  "expected_dialog": "I can remain silent as a grave. Which category is it?"
+  "expected_dialog": "begin.private"
 }
 

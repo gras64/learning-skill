@@ -2,9 +2,9 @@
   "utterance": "do you want to learn something",
   "intent_type": "handle_interaction",
   "intent": {
-    "Query": "do you want",
+    "Query": "Query",
     "Learning": "learn"
   },
-  "expected_dialog": "I like to learn. Which category is it?"
+  "expected_dialog": "begin.learning"
 }
 
