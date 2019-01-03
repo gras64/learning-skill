@@ -95,7 +95,7 @@ class LearningSkill(FallbackSkill):
                         return True
             self.log.debug('fallback learning: ignoring')
 
-        path = self.puplic_path
+        path = self.public_path
         for f in os.listdir(path):
             int_path = path+"/"+f+"/"+"vocab"+"/"+self.lang
             try:
@@ -118,43 +118,19 @@ class LearningSkill(FallbackSkill):
             self.log.debug('fallback learning: ignoring')
 
 
-
-    @intent_file_handler('Private.intent')
+    #@intent_file_handler('Learning.intent')
+    @intent_handler(IntentBuilder("").require("Query").optionally("Something").
+                    optionally("Private").require("Learning"))
     def handle_interaction(self, message):
-        catego = self.get_response("begin.private")
-        if catego in self._humor_words:
-            #self.speak("humor")
-            Category = "humor"
-        elif catego in self._science_words:
-            #self.speak("science")
-            Category = "science"
-        elif catego in self._love_words:
-            #self.speak("love")
-            Category = "love"
-        elif catego in self._cancel_words:
-            self.speak_dialog("cancel")
-            return
+        private = message.data.get("Private", None)
+        self.speak(private)
+        if private is None:
+            privacy = self.public_path
+            catego = self.get_response("begin.learning")
         else:
-            self.speak_dialog("invalid.category")
-            return catego
-        question = self.get_response("question")
-        if not question:
-            return  # user cancelled
-        keywords = self.get_response("keywords")
-        if not keywords:
-            return  # user cancelled
-        answer = self.get_response("answer")
-        if not answer:
-            return  # user cancelled
-        self.speak_dialog("save.learn",
-                          data={"question": question,
-                                "answer": answer},
-                                expect_response=True)
-
-    @intent_file_handler('Learning.intent')
-    def handle_interaction(self, message):
-        catego = self.get_response("begin.learning")
-        privacy = self.public_path
+            privacy = self.local_path
+            catego = self.get_response("begin.private")
+        #privacy = self.public_path
         if catego in self._humor_words:
             #self.speak("humor")
             Category = "humor"
@@ -165,7 +141,7 @@ class LearningSkill(FallbackSkill):
             #self.speak("love")
             Category = "love"
         elif catego in self._cancel_words:
-            self.speak_dialog("cancel")
+            self.speak_dialog("Cancel")
             return
         else:
             self.speak_dialog("invalid.category")
@@ -189,6 +165,7 @@ class LearningSkill(FallbackSkill):
                           data={"question": question,
                                 "answer": answer},
                                 expect_response=True)
+
         save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
         save_dialog.write(answer+"\n")
         save_dialog.close()
