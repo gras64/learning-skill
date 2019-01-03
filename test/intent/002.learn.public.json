@@ -1,0 +1,10 @@
+{
+  "utterance": "do you want to learn something",
+  "intent_type": "handle_interaction",
+  "intent": {
+    "Query": "do you want",
+    "Learning": "learn"
+  },
+  "expected_dialog": "I like to learn. Which category is it?"
+}
+

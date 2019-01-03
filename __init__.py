@@ -123,7 +123,6 @@ class LearningSkill(FallbackSkill):
                     optionally("Private").require("Learning"))
     def handle_interaction(self, message):
         private = message.data.get("Private", None)
-        self.speak(private)
         if private is None:
             privacy = self.public_path
             catego = self.get_response("begin.learning")
