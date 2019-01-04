@@ -119,7 +119,7 @@ class LearningSkill(FallbackSkill):
 
 
     #@intent_file_handler('Learning.intent')
-    @intent_handler(IntentBuilder("").require("Query").optionally("Something").
+    @intent_handler(IntentBuilder("HandleInteraction").require("Query").optionally("Something").
                     optionally("Private").require("Learning"))
     def handle_interaction(self, message):
         private = message.data.get("Private", None)
