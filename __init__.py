@@ -172,6 +172,13 @@ class LearningSkill(FallbackSkill):
         save_intent.write(question+"\n")
         save_intent.close()
 
+    @intent_file_handler('Upload.intent')
+    def handle_upload(self, message):
+        self.speak_dialog('realy.upload', expect_response=True)
+######### uploade code
+        self.speak_dialog('thanks')
+
+
     def shutdown(self):
         self.remove_fallback(self.handle_fallback)
         super(LearningSkill, self).shutdown()
