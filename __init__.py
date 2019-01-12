@@ -73,7 +73,7 @@ class LearningSkill(FallbackSkill):
 
         utterance = message.data['utterance']
         path = self.local_path
-        if not os.path.exists(self.local.path) or os.path.exists(self.public.path):
+        if not os.path.exists(self.local_path) or os.path.exists(self.public_path):
             self.remove_fallback(self.handle_fallback)
 
         for f in os.listdir(path):
