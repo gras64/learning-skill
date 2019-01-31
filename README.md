@@ -1,11 +1,10 @@
-# <img src='https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/graduation-cap.svg' card_color='#000000' width='50' height='50' style='vertical-align:bottom'/>
- Learning Skill
+# <img src='https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/graduation-cap.svg' card_color='#000000' width='50' height='50' style='vertical-align:bottom'/> Learning Skill
 This skill teaches you to enable knowledge and humor. This Skill give mycroft a personality
 
-## About 
+## About
 
 
-## Examples 
+## Examples
 * "Do you want to learn something"
 * "Do you already know this"
 * "There you can learn something"
@@ -14,7 +13,7 @@ This skill teaches you to enable knowledge and humor. This Skill give mycroft a 
 * "I tell you something private"
 * "Please do not say what I'm talking about"
 
-## Credits 
+## Credits
 Andreas Reinle(@gras64)
 
     you "Do you want to learn something"
