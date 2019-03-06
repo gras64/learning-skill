@@ -19,9 +19,9 @@ class LearningSkill(FallbackSkill):
         #self.settings.get('enable_fallback'),
         self.enable_fallback = "True"
         #self.settings.get('local_path'),
-        self.local_path = "/home/pi/.mycroft/learning-skill/private"
+        self.local_path = "~/.mycroft/learning-skill/private"
         #self.settings.get('public_path'),
-        self.public_path = "/home/pi/.mycroft/learning-skill/public"
+        self.public_path = "~/.mycroft/learning-skill/public"
         #self.settings.get('allow_category'),
         self.allow_category = ["humor", "love", "science"]
         #self.intent_path = "/home/pi/.mycroft/skills/LearningSkill/public/humor/vocab/de-de/hallo"
