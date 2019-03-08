@@ -28,8 +28,8 @@ Andreas Reinle(@gras64)
     mycroft "So I'm supposed to answer the question "do you know siri" with "I have never seen her"?
 
 
-    Save Data To /home/pi/.mycroft/skills/LearningSkill/public/humor/en-us/dialog/know.siri.dialog
-    Save Data To /home/pi/.mycroft/skills/LearningSkill/public/humor/en-us/vocab/know.siri.intent
+    Save Data To ~/.mycroft/skills/LearningSkill/public/humor/en-us/dialog/know.siri.dialog
+    Save Data To ~/.mycroft/skills/LearningSkill/public/humor/en-us/vocab/know.siri.intent
     You can edit the path at home.mycroft.ai.
 
 

@@ -16,25 +16,28 @@ LOGGER = getLogger(__name__)
 class LearningSkill(FallbackSkill):
     def __init__(self):
         super(LearningSkill, self).__init__("LearningSkill")
-        #self.settings.get('enable_fallback'),
+        # self.settings.get('enable_fallback'),
         self.enable_fallback = "True"
-        #self.settings.get('local_path'),
-        self.local_path = "~/.mycroft/learning-skill/private"
-        #self.settings.get('public_path'),
-        self.public_path = "~/.mycroft/learning-skill/public"
-        #self.settings.get('allow_category'),
+        # self.settings.get('local_path'),
+        self.local_path = self.file_system.path+"/private"
+        # self.settings.get('public_path'),
+        self.public_path = self.file_system.path+"/public"
+        # self.settings.get('allow_category'),
         self.allow_category = ["humor", "love", "science"]
-        #self.intent_path = "/home/pi/.mycroft/skills/LearningSkill/public/humor/vocab/de-de/hallo"
+        LOG.debug('local path enabled: %s' % self.local_path)
+        # self.intent_path = "/home/pi/.mycroft/skills/LearningSkill/public/humor/vocab/de-de/hallo"
         self.privacy = ""
         self.catego = ""
         self.Category = ""
 
-
     def initialize(self):
-        self.settings.get('public_path'),
-        self.settings.get('local_path'),
-        self.settings.get('allow_category'),
-        self.settings.get('enable_fallback'),
+        self.enable_fallback = self.settings.get('enable_fallback_ex')
+        #if self.settings.get('public_path_ex') != "":
+        self.public_path = self.settings.get('public_path_ex')
+        #if self.settings.get('local_path_ex') != "":
+        self.local_path = self.settings.get('local_path_ex')
+        #if self.settings.get('allow_category_ex') != "":
+        self.allow_category = self.settings.get('allow_category_ex')
 
         path = dirname(abspath(__file__))
 
@@ -50,12 +53,9 @@ class LearningSkill(FallbackSkill):
         path_to_cancel_words = join(path, 'vocab', self.lang, 'Cancel.voc')
         self._cancel_words = self._lines_from_path(path_to_cancel_words)
 
-        if self.settings.get('enable_fallback') == True:
+        if self.enable_fallback == True:
             self.register_fallback(self.handle_fallback, 5)
-        else:
-            self.enable_fallback = False
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
-
 
     def _lines_from_path(self, path):
         with open(path, 'r') as file:
@@ -63,64 +63,45 @@ class LearningSkill(FallbackSkill):
             return lines
 
     def read_intent_lines(self, name, int_path):
-        #self.speak(int_path)
+        # self.speak(int_path)
         with open(self.find_resource(name + '.intent', int_path)) as f:
-            #self.log.info('load intent: ' + f)
+            # self.log.info('load intent: ' + f)
             return filter(bool, map(str.strip, f.read().split('\n')))
 
-
     def handle_fallback(self, message):
-
         utterance = message.data['utterance']
-        path = self.local_path
-        if not os.path.exists(self.local_path) or os.path.exists(self.public_path):
-            self.remove_fallback(self.handle_fallback)
+        if os.path.exists(self.public_path) == "True":
+            path = self.public_path
+            self.load_fallback(utterance, path)
+        if os.path.exists(self.local_path) == "True":
+            path = self.local_path
+            self.load_fallback(utterance, path)
 
-        for f in os.listdir(path):
-            int_path = path+"/"+f+"/"+"vocab"+"/"+self.lang
-            try:
-                self.report_metric('failed-intent', {'utterance': utterance})
-            except:
-                self.log.exception('Error reporting metric')
+    def load_fallback(self, utterance, path):
+            for f in os.listdir(path):
+                int_path = path+"/"+f+"/"+"vocab"+"/"+self.lang
+                try:
+                    self.report_metric('failed-intent', {'utterance': utterance})
+                except:
+                    self.log.exception('Error reporting metric')
 
-            for a in os.listdir(int_path):
-                i = a.replace(".intent", "")
-                for l in self.read_intent_lines(i, int_path):
-                    if utterance.startswith(l):
-                        self.log.debug('Fallback type: ' + i)
-                        dig_path = path+"/"+f
-                        e = join(dig_path, 'dialog', self.lang, i +'.dialog')
-                        self.log.debug('Load Falback File: ' + e)
-                        lines = open(e).read().splitlines()
-                        i =random.choice(lines)
-                        self.speak_dialog(i)
-                        return True
-            self.log.debug('fallback learning: ignoring')
+                for a in os.listdir(int_path):
+                    i = a.replace(".intent", "")
+                    for l in self.read_intent_lines(i, int_path):
+                        if utterance.startswith(l):
+                            self.log.debug('Fallback type: ' + i)
+                            dig_path = path+"/"+f
+                            e = join(dig_path, 'dialog', self.lang, i +'.dialog')
+                            self.log.debug('Load Falback File: ' + e)
+                            lines = open(e).read().splitlines()
+                            i =random.choice(lines)
+                            self.speak_dialog(i)
+                            return
+                        return
+                    return
+                self.log.debug('fallback learning: ignoring')
+            return
 
-        path = self.public_path
-        for f in os.listdir(path):
-            int_path = path+"/"+f+"/"+"vocab"+"/"+self.lang
-            try:
-                self.report_metric('failed-intent', {'utterance': utterance})
-            except:
-                self.log.exception('Error reporting metric')
-
-            for a in os.listdir(int_path):
-                i = a.replace(".intent", "")
-                for l in self.read_intent_lines(i, int_path):
-                    if utterance.startswith(l):
-                        self.log.debug('Fallback type: ' + i)
-                        dig_path = path+"/"+f
-                        e = join(dig_path, 'dialog', self.lang, i +'.dialog')
-                        self.log.debug('Load Falback File: ' + e)
-                        lines = open(e).read().splitlines()
-                        i =random.choice(lines)
-                        self.speak_dialog(i)
-                        return True
-            self.log.debug('fallback learning: ignoring')
-
-
-    #@intent_file_handler('Learning.intent')
     @intent_handler(IntentBuilder("HandleInteraction").require("Query").optionally("Something").
                     optionally("Private").require("Learning"))
     def handle_interaction(self, message):
@@ -131,15 +112,15 @@ class LearningSkill(FallbackSkill):
         else:
             privacy = self.local_path
             catego = self.get_response("begin.private")
-        #privacy = self.public_path
+        # privacy = self.public_path
         if catego in self._humor_words:
-            #self.speak("humor")
+            # self.speak("humor")
             Category = "humor"
         elif catego in self._science_words:
-            #self.speak("science")
+            # self.speak("science")
             Category = "science"
         elif catego in self._love_words:
-            #self.speak("love")
+            # self.speak("love")
             Category = "love"
         elif catego in self._cancel_words:
             self.speak_dialog("Cancel")
@@ -165,7 +146,7 @@ class LearningSkill(FallbackSkill):
         self.speak_dialog("save.learn",
                           data={"question": question,
                                 "answer": answer},
-                                expect_response=True)
+                                expect_response = True)
 
         save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
         save_dialog.write(answer+"\n")

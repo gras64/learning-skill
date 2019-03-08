@@ -6,14 +6,14 @@
                 "name": "Fallback option",
                 "fields": [
                     {
-                        "name": "enable_fallback",
+                        "name": "enable_fallback_ex",
                         "type": "checkbox",
                         "label": "enable fallback",
                         "value": "True",
                         "placeholder": "demo prompt in the input box"
                     },
                     {
-                        "name": "allow_category",
+                        "name": "allow_category_ex",
                         "type": "text",
                         "label": "allow category",
                         "value": "humor, love, science"
@@ -25,19 +25,19 @@
                 "fields": [
                     {
                         "type": "label",
-                        "label": "path for storing the learning questions"
+                        "label": "path for storing the learning questions. leave empty for default"
                     },
                     {
-                        "name": "public_path",
+                        "name": "public_path_ex",
                         "type": "text",
                         "label": "public path",
-                        "value": "~/.mycroft/learning-skill/public"
+                        "value": ""
                     },
                     {
-                        "name": "local_path",
+                        "name": "local_path_ex",
                         "type": "text",
                         "label": "internel path",
-                        "value": "~/.mycroft/learning-skill/private"
+                        "value": ""
                     }
                 ]
             }
