@@ -103,8 +103,10 @@ class LearningSkill(FallbackSkill):
             return
 
     @intent_handler(IntentBuilder("HandleInteraction").require("Query").optionally("Something").
-                    optionally("Private").require("Learning"))
+    			      optionally("Private").require("Learning"))
     def handle_interaction(self, message):
+        url = "image.svg"
+        self.gui.show_image(url, caption=None, title="Learning Skill")
         private = message.data.get("Private", None)
         if private is None:
             privacy = self.public_path
