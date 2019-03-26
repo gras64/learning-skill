@@ -1,8 +1,8 @@
-# <img src='https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/graduation-cap.svg' card_color='#000000' width='50' height='50' style='vertical-align:bottom'/> Learning Skill
-This skill teaches you to enable knowledge and humor. This Skill give mycroft a personality
+# <img src='https://raw.githack.com/FortAwesome/Font-Awesome/master/svgs/solid/graduation-cap.svg' card_color='#000000' width='50' height='50' style='vertical-align:bottom'/> Learning
+Teach Mycroft knowledge and humor.
 
 ## About
-
+This Skill helps to give Mycroft a personality by learning any new information that you provide.
 
 ## Examples
 * "Do you want to learn something"
