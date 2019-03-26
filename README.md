@@ -41,9 +41,5 @@ Information
 Productivity
 
 ## Tags
-#earning
-#teaching
-#productivity
-#humor
+#learning
 #sience
-#love
