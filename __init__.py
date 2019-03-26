@@ -31,13 +31,13 @@ class LearningSkill(FallbackSkill):
         self.Category = ""
 
     def initialize(self):
-        self.enable_fallback = self.settings.get('enable_fallback_ex')
-        #if self.settings.get('public_path_ex') != "":
-        self.public_path = self.settings.get('public_path_ex')
-        #if self.settings.get('local_path_ex') != "":
-        self.local_path = self.settings.get('local_path_ex')
-        #if self.settings.get('allow_category_ex') != "":
-        self.allow_category = self.settings.get('allow_category_ex')
+        enable_fallback = self.settings.get("enable_fallback_ex")
+        if self.settings.get('public_path_ex') != "":
+            self.public_path = self.settings.get('public_path_ex')
+        if self.settings.get('local_path_ex') != "":
+            self.local_path = self.settings.get('local_path_ex')
+        if self.settings.get('allow_category_ex') != "":
+            self.allow_category = self.settings.get('allow_category_ex')
 
         path = dirname(abspath(__file__))
 
@@ -53,7 +53,7 @@ class LearningSkill(FallbackSkill):
         path_to_cancel_words = join(path, 'vocab', self.lang, 'Cancel.voc')
         self._cancel_words = self._lines_from_path(path_to_cancel_words)
 
-        if self.enable_fallback == True:
+        if self.enable_fallback is "True":
             self.register_fallback(self.handle_fallback, 5)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
 
@@ -70,10 +70,10 @@ class LearningSkill(FallbackSkill):
 
     def handle_fallback(self, message):
         utterance = message.data['utterance']
-        if os.path.exists(self.public_path) == "True":
+        if os.path.exists(self.public_path):
             path = self.public_path
             self.load_fallback(utterance, path)
-        if os.path.exists(self.local_path) == "True":
+        if os.path.exists(self.local_path):
             path = self.local_path
             self.load_fallback(utterance, path)
 
