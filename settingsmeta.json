@@ -15,7 +15,7 @@
                     {
                         "name": "allow_category_ex",
                         "type": "text",
-                        "label": "allow category",
+                        "label": "allow category current humor, love, science",
                         "value": "humor, love, science"
                     }
                 ]
