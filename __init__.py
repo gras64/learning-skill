@@ -72,10 +72,10 @@ class LearningSkill(FallbackSkill):
         utterance = message.data['utterance']
         if os.path.exists(self.public_path):
             path = self.public_path
-            self.load_fallback(utterance, path)
+            return self.load_fallback(utterance, path)
         if os.path.exists(self.local_path):
             path = self.local_path
-            self.load_fallback(utterance, path)
+            return self.load_fallback(utterance, path)
 
     def load_fallback(self, utterance, path):
             for f in os.listdir(path):
@@ -96,11 +96,9 @@ class LearningSkill(FallbackSkill):
                             lines = open(e).read().splitlines()
                             i =random.choice(lines)
                             self.speak_dialog(i)
-                            return
-                        return
-                    return
+                            return True
                 self.log.debug('fallback learning: ignoring')
-            return
+            return False
 
     @intent_handler(IntentBuilder("HandleInteraction").require("Query").optionally("Something").
                     optionally("Private").require("Learning"))
