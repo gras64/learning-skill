@@ -23,7 +23,7 @@ class LearningSkill(FallbackSkill):
         # self.settings.get('public_path'),
         self.public_path = self.file_system.path+"/public"
         # self.settings.get('allow_category'),
-        self.allow_category = ["humor", "love", "science"]
+        self.allow_category = "humor,love,science"
         LOG.debug('local path enabled: %s' % self.local_path)
         # self.intent_path = "/home/pi/.mycroft/skills/LearningSkill/public/humor/vocab/de-de/hallo"
         self.privacy = ""
@@ -37,25 +37,38 @@ class LearningSkill(FallbackSkill):
         if self.settings.get('local_path_ex') != "":
             self.local_path = self.settings.get('local_path_ex')
         if self.settings.get('allow_category_ex') != "":
-            self.allow_category = self.settings.get('allow_category_ex')
-
-        path = dirname(abspath(__file__))
-
-        path_to_humor_words = join(path, 'vocab', self.lang, 'Humor.voc')
-        self._humor_words = self._lines_from_path(path_to_humor_words)
-
-        path_to_science_words = join(path, 'vocab', self.lang, 'Science.voc')
-        self._science_words = self._lines_from_path(path_to_science_words)
-
-        path_to_love_words = join(path, 'vocab', self.lang, 'Love.voc')
-        self._love_words = self._lines_from_path(path_to_love_words)
-
-        path_to_cancel_words = join(path, 'vocab', self.lang, 'Cancel.voc')
-        self._cancel_words = self._lines_from_path(path_to_cancel_words)
+            self.allow_category = self.settings.get('allow_category_ex', '')
 
         if self.enable_fallback is "True":
             self.register_fallback(self.handle_fallback, 5)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
+
+    def init_category(self, cat):
+        path = dirname(abspath(__file__)) + '/vocab/'
+        if os.path.isfile(path + self.lang + "/" + cat +'.voc'):
+            path_to_words = path + self.lang + "/" + cat +'.voc'
+            words = self._lines_from_path(path_to_words)
+        else:
+            path = self.file_system.path + "/category/"
+            if os.path.isfile(path + self.lang + "/" + cat +'.voc'):
+                path_to_words = path + self.lang + "/" + cat +'.voc'
+                words = self._lines_from_path(path_to_words)
+            else:
+                self.add_category(cat, path)
+                path_to_words = path + self.lang +"/"+ cat+'.voc'
+                words = self._lines_from_path(path_to_words)
+        return words
+
+    def add_category(self, cat, path):
+        path = path + "/"+ self.lang
+        category = self.get_response("add.category",
+                                    data={"cat": cat})
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        save_category = open(path +"/"+ cat+'.voc', "w")
+        save_category.write(cat)
+        save_category.close()
+        return True
 
     def _lines_from_path(self, path):
         with open(path, 'r') as file:
@@ -94,7 +107,7 @@ class LearningSkill(FallbackSkill):
                             e = join(dig_path, 'dialog', self.lang, i +'.dialog')
                             self.log.debug('Load Falback File: ' + e)
                             lines = open(e).read().splitlines()
-                            i =random.choice(lines)
+                            i = random.choice(lines)
                             self.speak_dialog(i)
                             return True
                 self.log.debug('fallback learning: ignoring')
@@ -110,22 +123,14 @@ class LearningSkill(FallbackSkill):
         else:
             privacy = self.local_path
             catego = self.get_response("begin.private")
-        # privacy = self.public_path
-        if catego in self._humor_words:
-            # self.speak("humor")
-            Category = "humor"
-        elif catego in self._science_words:
-            # self.speak("science")
-            Category = "science"
-        elif catego in self._love_words:
-            # self.speak("love")
-            Category = "love"
-        elif catego in self._cancel_words:
-            self.speak_dialog("Cancel")
-            return
-        else:
+        privacy = self.public_path
+        Category =""
+        for cat in self.allow_category.split(","):
+            if catego in self.init_category(cat):
+                Category = cat # set category
+        if not Category:
             self.speak_dialog("invalid.category")
-            return catego
+            return
         question = self.get_response("question")
         if not question:
             return  # user cancelled

@@ -32,6 +32,9 @@ Andreas Reinle(@gras64)
     Save Data To ~/.mycroft/skills/LearningSkill/public/humor/en-us/vocab/know.siri.intent
     You can edit the path at home.mycroft.ai.
 
+## Add a new category
+if you want to add a new category. you just have to add a category under mycroft ai. Mycroft will then ask you for the name in your language.
+
 
 
 
