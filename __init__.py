@@ -37,7 +37,7 @@ class LearningSkill(FallbackSkill):
         if self.settings.get('local_path_ex') != "":
             self.local_path = self.settings.get('local_path_ex')
         if self.settings.get('allow_category_ex') != "":
-            self.allow_category = self.settings.get('allow_category_ex', '')
+            self.allow_category = self.settings.get('allow_category_ex')
 
         if self.enable_fallback is "True":
             self.register_fallback(self.handle_fallback, 5)
