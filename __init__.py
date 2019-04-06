@@ -16,28 +16,20 @@ LOGGER = getLogger(__name__)
 class LearningSkill(FallbackSkill):
     def __init__(self):
         super(LearningSkill, self).__init__("LearningSkill")
-        # self.settings.get('enable_fallback'),
-        self.enable_fallback = "True"
-        # self.settings.get('local_path'),
-        self.local_path = self.file_system.path+"/private"
-        # self.settings.get('public_path'),
-        self.public_path = self.file_system.path+"/public"
-        # self.settings.get('allow_category'),
-        self.allow_category = "humor,love,science"
-        LOG.debug('local path enabled: %s' % self.local_path)
-        # self.intent_path = "/home/pi/.mycroft/skills/LearningSkill/public/humor/vocab/de-de/hallo"
         self.privacy = ""
         self.catego = ""
         self.Category = ""
 
     def initialize(self):
-        enable_fallback = self.settings.get("enable_fallback_ex")
+        enable_fallback = self.settings.get("enable_fallback_ex", "True")
         if self.settings.get('public_path_ex') != "":
-            self.public_path = self.settings.get('public_path_ex')
+            self.public_path = self.settings.get('public_path_ex', self.file_system.path+"/public")
         if self.settings.get('local_path_ex') != "":
-            self.local_path = self.settings.get('local_path_ex')
+            self.local_path = self.settings.get('local_path_ex', self.file_system.path+"/private")
         if self.settings.get('allow_category_ex') != "":
-            self.allow_category = self.settings.get('allow_category_ex')
+            self.allow_category = self.settings.get('allow_category_ex', "humor,love,science")
+        LOG.debug('local path enabled: %s' % self.local_path)
+
 
         if self.enable_fallback is "True":
             self.register_fallback(self.handle_fallback, 5)
