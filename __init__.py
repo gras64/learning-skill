@@ -21,7 +21,7 @@ class LearningSkill(FallbackSkill):
         self.Category = ""
 
     def initialize(self):
-        enable_fallback = self.settings.get("enable_fallback_ex", "True")
+        self.enable_fallback = self.settings.get("enable_fallback_ex", "True")
         self.public_path = self.settings.get('public_path_ex', self.file_system.path+"/public")
         self.local_path = self.settings.get('local_path_ex', self.file_system.path+"/private")
         self.allow_category = self.settings.get('allow_category_ex', "humor,love,science")
