@@ -32,7 +32,7 @@ class LearningSkill(FallbackSkill):
         LOG.debug('local path enabled: %s' % self.local_path)
 
         if self.enable_fallback is True:
-            self.register_fallback(self.handle_fallback, 5)
+            self.register_fallback(self.handle_fallback, 6)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
 
     def init_category(self, cat):
@@ -138,10 +138,10 @@ class LearningSkill(FallbackSkill):
             os.makedirs(answer_path)
         if not os.path.isdir(question_path):
             os.makedirs(question_path)
-        confirm_save = self.get_response(
-            dialog="save.learn",
+        confirm_save = self.ask_yesno(
+            "save.learn",
             data={"question": question, "answer": answer})
-        if confirm_save.lower() != "yes":
+        if confirm_save != "yes":
             self.log.debug('new knowledge rejected')
             return  # user cancelled
         save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
