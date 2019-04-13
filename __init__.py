@@ -21,15 +21,18 @@ class LearningSkill(FallbackSkill):
         self.Category = ""
 
     def initialize(self):
-        self.enable_fallback = self.settings.get("enable_fallback_ex", "True")
-        self.public_path = self.settings.get('public_path_ex', self.file_system.path+"/public")
-        self.local_path = self.settings.get('local_path_ex', self.file_system.path+"/private")
-        self.allow_category = self.settings.get('allow_category_ex', "humor,love,science")
+        self.enable_fallback = self.settings.get('enable_fallback_ex') \
+            if self.settings.get('enable_fallback_ex') is not None else True
+        self.public_path = self.settings.get('public_path_ex') \
+            if self.settings.get('public_path_ex') else self.file_system.path+"/public"
+        self.local_path = self.settings.get('local_path_ex') \
+            if self.settings.get('local_path_ex') else self.file_system.path+"/private"
+        self.allow_category = self.settings.get('allow_category_ex') \
+            if self.settings.get('allow_category_ex') else "humor,love,science"
         LOG.debug('local path enabled: %s' % self.local_path)
 
-
-        if self.enable_fallback is "True":
-            self.register_fallback(self.handle_fallback, 5)
+        if self.enable_fallback is True:
+            self.register_fallback(self.handle_fallback, 6)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
 
     def init_category(self, cat):
@@ -135,17 +138,19 @@ class LearningSkill(FallbackSkill):
             os.makedirs(answer_path)
         if not os.path.isdir(question_path):
             os.makedirs(question_path)
-        self.speak_dialog("save.learn",
-                          data={"question": question,
-                                "answer": answer},
-                                expect_response = True)
-
+        confirm_save = self.ask_yesno(
+            "save.learn",
+            data={"question": question, "answer": answer})
+        if confirm_save != "yes":
+            self.log.debug('new knowledge rejected')
+            return  # user cancelled
         save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
         save_dialog.write(answer+"\n")
         save_dialog.close()
         save_intent = open(question_path+"/"+keywords.replace(" ", ".")+".intent", "a")
         save_intent.write(question+"\n")
         save_intent.close()
+        self.log.debug('new knowledge saved')
 
     def shutdown(self):
         self.remove_fallback(self.handle_fallback)
