@@ -1,7 +1,7 @@
 from adapt.intent import IntentBuilder
 from os.path import join, dirname, abspath, os, sys
 from mycroft.messagebus.message import Message
-from mycroft import MycroftSkill, intent_handler, intent_file_handler
+from mycroft import intent_handler
 from mycroft.filesystem import FileSystemAccess
 from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import FallbackSkill
@@ -35,24 +35,8 @@ class LearningSkill(FallbackSkill):
             self.register_fallback(self.handle_fallback, 6)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
 
-    def init_category(self, cat):
-        path = dirname(abspath(__file__)) + '/vocab/'
-        if os.path.isfile(path + self.lang + "/" + cat +'.voc'):
-            path_to_words = path + self.lang + "/" + cat +'.voc'
-            words = self._lines_from_path(path_to_words)
-        else:
-            path = self.file_system.path + "/category/"
-            if os.path.isfile(path + self.lang + "/" + cat +'.voc'):
-                path_to_words = path + self.lang + "/" + cat +'.voc'
-                words = self._lines_from_path(path_to_words)
-            else:
-                self.add_category(cat, path)
-                path_to_words = path + self.lang +"/"+ cat+'.voc'
-                words = self._lines_from_path(path_to_words)
-        return words
-
-    def add_category(self, cat, path):
-        path = path + "/"+ self.lang
+    def add_category(self, cat):
+        path = self.file_system.path + "/category/"+ self.lang
         category = self.get_response("add.category",
                                     data={"cat": cat})
         if not os.path.isdir(path):
@@ -118,8 +102,11 @@ class LearningSkill(FallbackSkill):
         privacy = self.public_path
         Category =""
         for cat in self.allow_category.split(","):
-            if catego in self.init_category(cat):
-                Category = cat # set category
+            try:
+                if self.voc_match(catego, cat):
+                    Category = cat
+            except:
+                self.add_category(cat)
         if not Category:
             self.speak_dialog("invalid.category")
             return
