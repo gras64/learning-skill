@@ -6,6 +6,11 @@ from mycroft.filesystem import FileSystemAccess
 from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import FallbackSkill
 from mycroft.util.log import LOG, getLogger
+from mycroft.skills.msm_wrapper import build_msm_config, create_msm
+from msm import (
+    MultipleSkillMatches,
+    SkillNotFound,
+)
 import random
 
 _author__ = 'gras64'
@@ -14,6 +19,8 @@ LOGGER = getLogger(__name__)
 
 
 class LearningSkill(FallbackSkill):
+    _msm = None #### From installer skill
+
     def __init__(self):
         super(LearningSkill, self).__init__("LearningSkill")
         self.privacy = ""
@@ -174,6 +181,47 @@ class LearningSkill(FallbackSkill):
             saved_utt = None
         self.log.info("find Category: "+str(Category)+" and saved  utt: "+str(saved_utt))
         self.handle_interaction(message, Category, saved_utt)
+
+    @intent_file_handler('something_for_my_skill.intent')
+    def something_for_my_skill_intent(self, message):
+        skill = self.find_skill(message.data['skill'], False)
+        self.log.info("find Skill: "+str(skill))
+        if not self.saved_utt is None:
+            saved_utt = self.saved_utt
+
+    
+    def find_skill(self, param, local): #### From installer skill
+        """Find a skill, asking if multiple are found"""
+        try:
+            return self.msm.find_skill(param)
+        except MultipleSkillMatches as e:
+            skills = [i for i in e.skills if i.is_local == local]
+            or_word = self.translate('or')
+            if len(skills) >= 10:
+                self.speak_dialog('error.too.many.skills')
+                raise StopIteration
+            names = [self.clean_name(skill) for skill in skills]
+            if names:
+                response = self.get_response(
+                    'choose.skill', num_retries=0,
+                    data={'skills': ' '.join([
+                        ', '.join(names[:-1]), or_word, names[-1]
+                    ])},
+                )
+                if not response:
+                    raise StopIteration
+                return self.msm.find_skill(response, skills=skills)
+            else:
+                raise SkillNotFound(param)
+        
+    @property #### From installer skill
+    def msm(self):
+        if self._msm is None:
+            msm_config = build_msm_config(self.config_core)
+            self._msm = create_msm(msm_config)
+
+        return self._msm
+
 
 
 def create_skill():
