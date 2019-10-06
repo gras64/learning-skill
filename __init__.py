@@ -1,7 +1,7 @@
 from adapt.intent import IntentBuilder
 from os.path import join, dirname, abspath, os, sys
 from mycroft.messagebus.message import Message
-from mycroft import intent_handler
+from mycroft import intent_handler, intent_file_handler
 from mycroft.filesystem import FileSystemAccess
 from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import FallbackSkill
@@ -30,14 +30,15 @@ class LearningSkill(FallbackSkill):
         self.allow_category = self.settings.get('allow_category_ex') \
             if self.settings.get('allow_category_ex') else "humor,love,science"
         LOG.debug('local path enabled: %s' % self.local_path)
-
+        self.saved_utt = ""
         if self.enable_fallback is True:
             self.register_fallback(self.handle_fallback, 6)
+            self.register_fallback(self.handle_save_fallback, 99)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
 
     def add_category(self, cat):
         path = self.file_system.path + "/category/"+ self.lang
-        category = self.get_response("add.category",
+        Category = self.get_response("add.category",
                                     data={"cat": cat})
         if not os.path.isdir(path):
             os.makedirs(path)
@@ -91,27 +92,36 @@ class LearningSkill(FallbackSkill):
 
     @intent_handler(IntentBuilder("HandleInteraction").require("Query").optionally("Something").
                     optionally("Private").require("Learning"))
-    def handle_interaction(self, message):
+    def handle_interaction(self, message, Category=None, saved_utt=None):
         private = message.data.get("Private", None)
         if private is None:
             privacy = self.public_path
-            catego = self.get_response("begin.learning")
+            if Category is None:
+                catego = self.get_response("begin.learning")
         else:
             privacy = self.local_path
-            catego = self.get_response("begin.private")
-        privacy = self.public_path
-        Category =""
-        for cat in self.allow_category.split(","):
-            try:
-                if self.voc_match(catego, cat):
-                    Category = cat
-            except:
-                self.add_category(cat)
-        if not Category:
-            self.speak_dialog("invalid.category")
-            return
-        question = self.get_response("question")
+            if Category is None:
+                catego = self.get_response("begin.private")
+        if Category is None:
+            for cat in self.allow_category.split(","):
+                try:
+                    if self.voc_match(catego, cat):
+                        Category = cat
+                except:
+                    self.add_category(cat)
+            if Category is None:        
+                self.speak_dialog("invalid.category")
+                return
+        #privacy = self.public_path
+        if saved_utt is None:
+            question = self.get_response("question")
+        else:
+            self.log.info("become utt2"+saved_utt)
+            question = saved_utt
+            self.log.info("become utt"+question)
+            
         if not question:
+            self.log.info("stop")
             return  # user cancelled
         keywords = self.get_response("keywords")
         if not keywords:
@@ -141,7 +151,29 @@ class LearningSkill(FallbackSkill):
 
     def shutdown(self):
         self.remove_fallback(self.handle_fallback)
+        self.remove_fallback(self.handle_save_fallback)
         super(LearningSkill, self).shutdown()
+
+    def handle_save_fallback(self, message):
+        self.saved_utt = message.data['utterance']
+        self.log.info('save utterance for learning')
+
+    @intent_file_handler('will_let_you_know.intent')
+    def will_let_you_know_intent(self, message):
+        catego = message.data.get("category")
+        Category = None
+        for cat in self.allow_category.split(","):
+            try:
+                if self.voc_match(catego, cat):
+                    Category = cat
+            except:
+                self.add_category(cat)
+        if not self.saved_utt is None:
+            saved_utt = self.saved_utt
+        else:
+            saved_utt = None
+        self.log.info("find Category: "+str(Category)+" and saved  utt: "+str(saved_utt))
+        self.handle_interaction(message, Category, saved_utt)
 
 
 def create_skill():

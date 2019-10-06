@@ -3,6 +3,8 @@ Teach Mycroft knowledge and humor.
 
 ## About
 This Skill helps to give Mycroft a personality by learning any new information that you provide.
+if mycroft not understood mycroft you. you can immediately train the previous request by saying "I want to explain it" or "houmor is probably not your strength".
+then you do not have to do everything from the beginning.
 
 ## Examples
 * "Do you want to learn something"
@@ -12,6 +14,9 @@ This Skill helps to give Mycroft a personality by learning any new information t
 * "can you keep a secret"
 * "I tell you something private"
 * "Please do not say what I'm talking about"
+
+* "I want to explain it"
+* "houmor is probably not your strength"
 
 ## Credits
 Andreas Reinle(@gras64)
