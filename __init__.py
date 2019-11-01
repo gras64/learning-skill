@@ -6,6 +6,8 @@ from mycroft.filesystem import FileSystemAccess
 from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import FallbackSkill
 from mycroft.util.log import LOG, getLogger
+from mycroft.util.parse import match_one
+import re
 from mycroft.skills.msm_wrapper import build_msm_config, create_msm
 from msm import (
     MultipleSkillMatches,
@@ -116,7 +118,7 @@ class LearningSkill(FallbackSkill):
                         Category = cat
                 except:
                     self.add_category(cat)
-            if Category is None:        
+            if Category is None:
                 self.speak_dialog("invalid.category")
                 return
         #privacy = self.public_path
@@ -126,7 +128,7 @@ class LearningSkill(FallbackSkill):
             self.log.info("become utt2"+saved_utt)
             question = saved_utt
             self.log.info("become utt"+question)
-            
+
         if not question:
             self.log.info("stop")
             return  # user cancelled
@@ -136,30 +138,29 @@ class LearningSkill(FallbackSkill):
         answer = self.get_response("answer")
         if not answer:
             return  # user cancelled
-        answer_path = privacy+"/"+Category+"/"+"dialog"+"/"+self.lang
-        question_path = privacy+"/"+Category+"/"+"vocab"+"/"+self.lang
-        if not os.path.isdir(answer_path):
-            os.makedirs(answer_path)
-        if not os.path.isdir(question_path):
-            os.makedirs(question_path)
         confirm_save = self.ask_yesno(
             "save.learn",
             data={"question": question, "answer": answer})
         if confirm_save != "yes":
             self.log.debug('new knowledge rejected')
             return  # user cancelled
-        save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
-        save_dialog.write(answer+"\n")
-        save_dialog.close()
+        answer_path = privacy+"/"+Category+"/"+"dialog"+"/"+self.lang
+        question_path = privacy+"/"+Category+"/"+"vocab"+"/"+self.lang
+        self.save_intent(question_path, question, keywords, answer_path, answer)
+
+    def save_intent(self, question_path, question, keywords, answer_path=None, answer=None):
+        if not answer_path is None:
+            if not os.path.isdir(answer_path):
+                os.makedirs(answer_path)
+            save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
+            save_dialog.write(answer+"\n")
+            save_dialog.close()
+        if not os.path.isdir(question_path):
+            os.makedirs(question_path)
         save_intent = open(question_path+"/"+keywords.replace(" ", ".")+".intent", "a")
         save_intent.write(question+"\n")
         save_intent.close()
         self.log.debug('new knowledge saved')
-
-    def shutdown(self):
-        self.remove_fallback(self.handle_fallback)
-        self.remove_fallback(self.handle_save_fallback)
-        super(LearningSkill, self).shutdown()
 
     def handle_save_fallback(self, message):
         self.saved_utt = message.data['utterance']
@@ -188,8 +189,77 @@ class LearningSkill(FallbackSkill):
         self.log.info("find Skill: "+str(skill))
         if not self.saved_utt is None:
             saved_utt = self.saved_utt
+        self.scan_intent(skill)
 
-    
+
+    def scan_intent(self, skill):
+        location = os.path.dirname(os.path.realpath(__file__))
+        location = location + '/../'  # get skill parent directory path
+        self.log.info("old uttr: "+str(self.saved_utt))
+        self.speak_dialog("please.wait")
+        for name in os.listdir(location):
+            path = os.path.join(location, name)
+            file = path.replace(location, '')
+            if str(skill) in str(file):
+                if os.path.isdir(path):
+                #self.log.info('find skill folder: '+path)
+                    for root, dirs, files in os.walk(str(path)):
+                        for f in files:
+                            #self.log.info('search file')
+                            filename = os.path.join(root, f)
+                            if filename.endswith('.intent'):
+                                self.work_on_intent(filename, skill, location)
+
+    def work_on_intent(self, filename, skill, location):
+        #self.log.info('find intent file: '+filename)
+        if self.lang in filename:
+            fobj = open(filename)
+            self.log.info('open intent file: '+filename)
+            for line in fobj:
+                match, confidence = match_one(self.saved_utt, [line])
+                self.log.info('found intent: '+line.rstrip()+' '+str(confidence))
+                if confidence > 0.5:
+                    match, normal = self.normalise_question(match)
+                    self.log.info('match '+str(confidence)+' found and normal '+normal)
+                    if self.ask_yesno("do.you.mean", data={"match": normal}) is "yes":
+                        fobj.close()
+                        keywords = os.path.basename(filename).replace('.intent', '')
+                        self.log.info('keywords: '+keywords)
+                        question = self.saved_utt
+                        question_path = self.file_system.path+"/skills/"+str(skill)+"/"+"vocab"+"/"+self.lang
+                        self.log.info('bevor check: '+match)
+                        question = self.check_question(question, match)
+                        self.log.info('after check: '+match)
+                        self.log.info('output question: '+match)
+                        if self.ask_yesno("save.answer", data={"question": question, "skill": skill}) is "yes":
+                            self.save_intent(question_path, question, keywords)
+                        return
+                    break
+            fobj.close()
+
+    def normalise_question(self, match):
+        self.log.info('bevor filter : '+match)
+        match = re.sub(r'(\|\s?\w+)','', match, flags=re.M) # select one for poodle (emty|full)
+        match = re.sub(r'[()%]|(^\\.+)*|(^#+\s?.*)', '', match, flags=re.M) # for poodle
+        match = re.sub(r'(#+\s?.*)|(^[,.: ]*)', '', match, flags=re.M)
+        match = match.replace('|', ' ').replace('  ', ' ')
+        normal = match
+        normal = normal.replace('{', '').replace('}', '')
+        self.log.info('make with: '+match+' normalise '+normal)
+        return match, normal
+
+    def check_question(self, question, match):
+        self.log.info('bevor queston filter : '+match)
+        match = match.replace('{{', '{').replace('}}', '}') ##small filter
+        invariable = re.findall(r'({.*?})', match, flags=re.M)
+        self.log.info('invariable : '+str(invariable))
+        if invariable:
+            for i in invariable:
+                self.log.info('invariable schleife: '+str(i))
+                outvariable = self.get_response("variable.found", data={"variable": i})
+                question = question.replace(outvariable, '{'+i+'}')
+        return question
+
     def find_skill(self, param, local): #### From installer skill
         """Find a skill, asking if multiple are found"""
         try:
@@ -213,7 +283,7 @@ class LearningSkill(FallbackSkill):
                 return self.msm.find_skill(response, skills=skills)
             else:
                 raise SkillNotFound(param)
-        
+
     @property #### From installer skill
     def msm(self):
         if self._msm is None:
@@ -221,6 +291,11 @@ class LearningSkill(FallbackSkill):
             self._msm = create_msm(msm_config)
 
         return self._msm
+
+    def shutdown(self):
+        self.remove_fallback(self.handle_fallback)
+        self.remove_fallback(self.handle_save_fallback)
+        super(LearningSkill, self).shutdown()
 
 
 
