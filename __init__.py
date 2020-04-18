@@ -6,7 +6,12 @@ from mycroft.filesystem import FileSystemAccess
 from mycroft.audio import wait_while_speaking
 from mycroft.skills.core import FallbackSkill
 from mycroft.util.log import LOG, getLogger
+from mycroft.util import resolve_resource_file
+from mycroft.util.parse import match_one
 from mycroft.skills.msm_wrapper import build_msm_config, create_msm
+from mycroft.configuration.config import Configuration
+import re
+import time
 from msm import (
     MultipleSkillMatches,
     SkillNotFound,
@@ -37,11 +42,23 @@ class LearningSkill(FallbackSkill):
         self.allow_category = self.settings.get('allow_category_ex') \
             if self.settings.get('allow_category_ex') else "humor,love,science"
         LOG.debug('local path enabled: %s' % self.local_path)
+        self.save_path = self.file_system.path+"/mycroft-skills"
         self.saved_utt = ""
         if self.enable_fallback is True:
             self.register_fallback(self.handle_fallback, 6)
             self.register_fallback(self.handle_save_fallback, 99)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
+        skillfolder = Configuration.get()['skills']['directory']
+        self.log.info(skillfolder+"/PootleSync/mycroft-skills")
+        if 'translations_dir' in Configuration.get(): ##path of second language files
+            self.lang_path = Configuration.get()['translations_dir']
+            self.log.info("set lang path to translation_dir")
+        elif os.path.isdir(skillfolder+"/PootleSync/mycroft-skills"):
+            self.lang_path = skillfolder+"/PootleSync/mycroft-skills"
+            self.log.info("set lang path to PootleSync")
+        else:
+            self.lang_path = None
+            self.log.info("set lang path to skill path")
 
     def add_category(self, cat):
         path = self.file_system.path + "/category/"+ self.lang
@@ -60,9 +77,9 @@ class LearningSkill(FallbackSkill):
             return lines
 
     def read_intent_lines(self, name, int_path):
-        # self.speak(int_path)
+        #self.log.info(int_path+name)
         with open(self.find_resource(name + '.intent', int_path)) as f:
-            # self.log.info('load intent: ' + f)
+            #self.log.info('load intent: ' + str(f))
             return filter(bool, map(str.strip, f.read().split('\n')))
 
     def handle_fallback(self, message):
@@ -136,24 +153,23 @@ class LearningSkill(FallbackSkill):
         answer = self.get_response("answer")
         if not answer:
             return  # user cancelled
-        answer_path = privacy+"/"+Category+"/"+"dialog"+"/"+self.lang
-        question_path = privacy+"/"+Category+"/"+"vocab"+"/"+self.lang
-        if not os.path.isdir(answer_path):
-            os.makedirs(answer_path)
-        if not os.path.isdir(question_path):
-            os.makedirs(question_path)
+        answer_path = privacy+"/"+Category+"/"+"dialog"+"/"+self.lang+"/"
+        question_path = privacy+"/"+Category+"/"+"vocab"+"/"+self.lang+"/"
         confirm_save = self.ask_yesno(
             "save.learn",
             data={"question": question, "answer": answer})
         if confirm_save != "yes":
             self.log.debug('new knowledge rejected')
             return  # user cancelled
-        save_dialog = open(answer_path+"/"+keywords.replace(" ", ".")+".dialog", "a")
-        save_dialog.write(answer+"\n")
+        write_file(answer_path, answer, keywords.replace(" ", ".")+".dialog")
+        write_file(question_file, question, keywords.replace(" ", ".")+".intent")
+
+    def write_file(self, path, data, filename):
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        save_dialog = open(path+filename, "a")
+        save_dialog.write(data+"\n")
         save_dialog.close()
-        save_intent = open(question_path+"/"+keywords.replace(" ", ".")+".intent", "a")
-        save_intent.write(question+"\n")
-        save_intent.close()
         self.log.debug('new knowledge saved')
 
     def shutdown(self):
@@ -184,10 +200,82 @@ class LearningSkill(FallbackSkill):
 
     @intent_file_handler('something_for_my_skill.intent')
     def something_for_my_skill_intent(self, message):
-        skill = self.find_skill(message.data['skill'], False)
-        self.log.info("find Skill: "+str(skill))
-        if not self.saved_utt is None:
-            saved_utt = self.saved_utt
+        utt_skill = message.data['skill']
+        skills = [skill for skill in self.msm.all_skills if skill.is_local]
+        for skill in skills:
+            if str(utt_skill) in str(skill):
+                self.log.info("find Skill: "+str(skill.name))
+                if not self.saved_utt is None:
+                    saved_utt = self.saved_utt
+                    self.intent_match(saved_utt, skill)
+                else:
+                    self.speak_dialog("no.old.inquiry")
+
+    def intent_match(self, saved_utt, skill):
+        if self.lang_path == None:
+            path = skill.path
+        else:
+            path = self.lang_path+"/"+skill.name
+        for root, dirs, files in os.walk(path):
+            for f in files:
+                filename = os.path.join(root, f)
+                if filename.endswith('.intent'):
+                    i = filename.replace(".intent", "")
+                    #for l in self.read_intent_lines(i, filename):
+                    #self.log.info("test2"+str(self._lines_from_path(filename)))
+                    match, confidence = match_one(saved_utt, self._lines_from_path(filename))
+                    self.log.info("match "+str(match)+ " confidence "+ str(confidence))
+                    if confidence > 0.5:
+                        self.intent_found(filename, saved_utt, match, skill)
+                        '''todo
+                        if filename.endswith('.vocab'):
+                            i = filename.replace(".vocab", "")
+                            for l in self.read_intent_lines(i, filename):
+                        '''
+
+
+    def intent_found(self, filename, saved_utt, match, skill):
+        var = re.findall('{\S+}', match)#.replace("{", "").replace("}")
+        if not var is None:
+            for f in var:
+                get = self.get_response("var.found", data={"var": f})
+                self.log.info("become get "+str(get)+" match "+match+ " f "+f)
+                e = f.replace("{", "").replace("}", "")
+                i = 1
+                while True and i <= 3:
+                    if e in match:
+                        self.log.info("found get "+str(get))
+                        saved_utt = saved_utt.replace(get, f)
+                        match = match.replace(f, get)
+                        self.log.info("found get "+str(get))
+                        break
+                    elif i > 3:
+                        get = self.get_response("second.try")
+                        self.log.info("not found get"+str(get))
+                        i = i + 1
+                    else:
+                        self.speak_dialog("no.old.inquiry")
+                        return
+                    time.sleep(2)
+        confirm_save = self.ask_yesno(
+            "save.update",
+            data={"question": saved_utt})
+        if confirm_save != "yes":
+            self.log.debug('new knowledge rejected')
+            return  # user cancelled
+        if self.lang_path == None:
+            path = self.save_path+"/"+skill.name+"/locale/"+self.lang+"/"
+        else:
+            path = self.lang_path+"/"+skill.name+"/locale/"+self.lang+"/"  
+        filename = os.path.basename(filename)
+        self.log.info("save querey"+str(path)+" filename "+filename+ "saved_utt "+saved_utt)
+        self.write_file(path, saved_utt, filename)
+        self.log.info("match "+match)
+        self.bus.emit(Message('recognizer_loop:utterance',
+                              {"utterances": [match],
+                               "lang": self.lang,
+                               "session": skill.name}))
+
 
     
     def find_skill(self, param, local): #### From installer skill
