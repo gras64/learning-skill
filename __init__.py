@@ -161,8 +161,8 @@ class LearningSkill(FallbackSkill):
         if confirm_save != "yes":
             self.log.debug('new knowledge rejected')
             return  # user cancelled
-        write_file(answer_path, answer, keywords.replace(" ", ".")+".dialog")
-        write_file(question_file, question, keywords.replace(" ", ".")+".intent")
+        self.write_file(answer_path, answer, keywords.replace(" ", ".")+".dialog")
+        self.write_file(question_path, question, keywords.replace(" ", ".")+".intent")
 
     def write_file(self, path, data, filename):
         if not os.path.isdir(path):
@@ -270,11 +270,20 @@ class LearningSkill(FallbackSkill):
         filename = os.path.basename(filename)
         self.log.info("save querey"+str(path)+" filename "+filename+ "saved_utt "+saved_utt)
         self.write_file(path, saved_utt, filename)
+        match = self.filter_sentence(match)
         self.log.info("match "+match)
         self.bus.emit(Message('recognizer_loop:utterance',
                               {"utterances": [match],
                                "lang": self.lang,
                                "session": skill.name}))
+
+    def filter_sentence(self, sentence): # filter intents data for utter event 
+        sentence = re.sub(r'(\|\s?\w+)','', sentence, flags=re.M) # select one for poodle (emty|full)
+        sentence = re.sub(r'[()%]|(^\\.+)*|(^#+\s?.*)', '', sentence, flags=re.M) # for poodle
+        sentence = re.sub(r'(#+\s?.*)|(^[,.: ]*)', '', sentence, flags=re.M)
+        sentence = sentence.replace('|', ' ').replace('  ', ' ')
+
+        return sentence
 
 
     
