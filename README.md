@@ -21,6 +21,8 @@ then you do not have to do everything from the beginning.
 ## Credits
 Andreas Reinle(@gras64)
 
+    Use Conversation 1
+
     you "Do you want to learn something"
     mycroft "I like to learn. Which category is it?"
     you "humor"
@@ -36,6 +38,29 @@ Andreas Reinle(@gras64)
     Save Data To ~/.mycroft/skills/LearningSkill/public/humor/en-us/dialog/know.siri.dialog
     Save Data To ~/.mycroft/skills/LearningSkill/public/humor/en-us/vocab/know.siri.intent
     You can edit the path at home.mycroft.ai.
+
+    Use Conversation 2
+
+    you "how does jack norris pay for the tram"
+    mycroft "i don't understand"
+    you "that you should humor"
+    mycroft "give me keywords"
+    you "Juck tram"
+    mycroft "what should I know about it"
+    you "bach doesn't pay him at all"
+    mycroft "So I'm supposed to answer the question "how does jack norris pay for the tram" with "bach doesn't pay him at all"
+
+
+    Use Conversation 3
+
+    you "recording my voice for 30 seconds"
+    mycroft "i don't understand"
+    you "use the audio-record skill"
+    mycroft "I found a variable {time} you can give it to me"
+    you "30 seconds"
+    mycroft "should I add the sentence: recording my voice for {time}
+    you "yes"
+    mycroft "Recording audio for 30 seconds"
 
 ## Add a new category
 if you want to add a new category. you just have to add a category under mycroft ai. Mycroft will then ask you for the name in your language.
