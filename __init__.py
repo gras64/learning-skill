@@ -232,7 +232,7 @@ class LearningSkill(FallbackSkill):
                             if saved_utt is not None:
                                 match, saved_utt = self.var_found(saved_utt, match)
                                 self.ask_save_intent_dialog(saved_utt, filename, match, skill)
-                                acknowledge()
+                                self.acknowledge()
                             else:
                                 self.speak_dialog("cancel")
 
@@ -271,6 +271,7 @@ class LearningSkill(FallbackSkill):
                     if confidence > 0.5:
                         match, saved_utt = self.var_found(saved_utt, match)
                         self.ask_save_intent_dialog(saved_utt, filename, match, skill)
+                        self.acknowledge()
                         self.bus.emit(Message('recognizer_loop:utterance',
                               {"utterances": [match],
                                "lang": self.lang,
