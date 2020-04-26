@@ -232,6 +232,7 @@ class LearningSkill(FallbackSkill):
                             if saved_utt is not None:
                                 match, saved_utt = self.var_found(saved_utt, match)
                                 self.ask_save_intent_dialog(saved_utt, filename, match, skill)
+                                acknowledge()
                             else:
                                 self.speak_dialog("cancel")
 

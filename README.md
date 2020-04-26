@@ -58,9 +58,20 @@ Andreas Reinle(@gras64)
     you "use the audio-record skill"
     mycroft "I found a variable {time} you can give it to me"
     you "30 seconds"
-    mycroft "should I add the sentence: recording my voice for {time}
+    mycroft "should I add the sentence: recording my voice for {time}"
     you "yes"
     mycroft "Recording audio for 30 seconds"
+
+    Use Conversation 4 
+
+    you "how are you"
+    mycroft "i am good"
+    you "complete also sometimes your answers"
+    mycroft "how would you say that Replace Varaiblen with your own placeholders such as time or temperature."
+    you "better than you"
+    mycroft "should I add the sentence: recording my voice for {time}"
+    you "yes"
+
 
 ## Add a new category
 if you want to add a new category. you just have to add a category under mycroft ai. Mycroft will then ask you for the name in your language.
