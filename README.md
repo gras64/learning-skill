@@ -72,6 +72,20 @@ Andreas Reinle(@gras64)
     mycroft "should I add the sentence: recording my voice for {time}"
     you "yes"
 
+    Use Conversation 5
+
+    you "can you edit your dialogues in personal skill"
+    mycroft "I will tell you sentences. If I'm right say yes"
+    mycroft "I am an open source artificial intelligence."
+    you "yes"
+    mycroft "how would you say that Replace Varaiblen with your own placeholders such as time or temperature."
+    you "I'm just another AI developed by Mycroft"
+    mycroft "should I add the sentence: I'm just another AI developed by Mycroft"
+    you "yes"
+    mycroft "do you want to continue?"
+    you "no"
+
+
 
 ## Add a new category
 if you want to add a new category. you just have to add a category under mycroft ai. Mycroft will then ask you for the name in your language.

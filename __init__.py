@@ -213,7 +213,52 @@ class LearningSkill(FallbackSkill):
         for skill in skills:
             if not self.saved_answer is None:
                 self.dialog_match(self.saved_answer, skill)
-    
+
+    @intent_file_handler("work.on.dialog.intent")
+    def work_on_dialog(self, message):
+        eskill = message.data.get("skill", None)
+        if eskill is None:
+            eskill = self.get_response("what.skill")
+        if eskill is None:
+            self.speak_dialog("cancel")
+            return
+        else:
+            skills = [skill for skill in self.msm.all_skills if skill.is_local]
+            for skill in skills:
+                if eskill in skill.name:
+                    if self.lang_path == None:
+                        path = skill.path
+                    else:
+                        path = self.lang_path+"/"+skill.name
+                    self.speak_dialog("read.for")
+                    for root, dirs, files in os.walk(path):
+                        for f in files:
+                        ### for dialog files
+                            filename = os.path.join(root, f)
+                            if filename.endswith(".dialog"):
+                                e = filename
+                                lines = open(e).read().splitlines()
+                                self.log.info(str(lines))
+                                confirm = self.ask_yesno(lines[0])
+                                if confirm == "yes":
+                                    match = lines[0]
+                                    saved_utt = self.get_response("found.output", data={"match": match})
+                                    if saved_utt is not None:
+                                        match, saved_utt = self.var_found(saved_utt, match)
+                                        self.ask_save_intent_dialog(saved_utt, filename, match, skill)
+                                        a = self.ask_yesno("continue")
+                                        if a == "yes":
+                                            continue
+                                        else:
+                                            self.acknowledge()
+                                            return True
+                                    else:
+                                        self.speak_dialog("cancel")
+                                else:
+                                    self.speak_dialog("cancel")
+                                    
+
+
     def dialog_match(self, saved_dialog, skill):        
         if self.lang_path == None:
             path = skill.path
