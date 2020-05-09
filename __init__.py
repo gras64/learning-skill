@@ -10,6 +10,12 @@ from mycroft.util import resolve_resource_file
 from mycroft.util.parse import match_one
 from mycroft.skills.msm_wrapper import build_msm_config, create_msm
 from mycroft.configuration.config import Configuration
+####
+from adapt.engine import IntentDeterminationEngine
+#from padaos import IntentContainer
+from padatious.intent_container import IntentContainer
+
+
 import re
 import time
 from msm import (
@@ -33,6 +39,7 @@ class LearningSkill(FallbackSkill):
         self.Category = ""
 
     def initialize(self):
+        self.engine = IntentDeterminationEngine()
         self.enable_fallback = self.settings.get('enable_fallback_ex') \
             if self.settings.get('enable_fallback_ex') is not None else True
         self.public_path = self.settings.get('public_path_ex') \
@@ -62,6 +69,7 @@ class LearningSkill(FallbackSkill):
         else:
             self.lang_path = None
             self.log.info("set lang path to skill path")
+        #self.test()
 
     def add_category(self, cat):
         path = self.file_system.path + "/category/"+ self.lang
@@ -257,6 +265,16 @@ class LearningSkill(FallbackSkill):
                                 else:
                                     self.speak_dialog("cancel")
                                     
+ ###   def test(self):
+        '''container = IntentContainer()
+        #container = IntentContainer('intent_cache')
+        engine = IntentDeterminationEngine()
+        self.log.info("start test")
+        self.log.info(container.calc_intent("wie wird das wetter heute"))
+        for intent in self.engine.determine_intent(' '.join(sys.argv[1:])):
+            if intent.get('confidence') > 0:
+	            self.log.info(json.dumps(intent, indent=4))
+                #self.log.info(intent)'''
 
 
     def dialog_match(self, saved_dialog, skill):        
@@ -293,7 +311,7 @@ class LearningSkill(FallbackSkill):
                 self.log.info("find Skill: "+str(skill.name))
                 if not self.saved_utt is None:
                     saved_utt = self.saved_utt
-                    self.intent_match(saved_utt, skill, ".intent")
+                    self.intent_match(saved_utt, skill)
                 else:
                     self.speak_dialog("no.old.inquiry")
 
@@ -335,7 +353,7 @@ class LearningSkill(FallbackSkill):
         intents = re.findall(r"IntentBuilder.+\n.+", fobj, flags=re.M)
         for intent in intents:
             intent = str(intent).replace("\n", "").replace(" ", "")
-            self.log.info(intent)       
+            self.log.info(intent)      
         #fobj.close()
                 
 
