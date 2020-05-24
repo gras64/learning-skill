@@ -69,7 +69,6 @@ class LearningSkill(FallbackSkill):
         else:
             self.lang_path = None
             self.log.info("set lang path to skill path")
-        #self.test()
 
     def add_category(self, cat):
         path = self.file_system.path + "/category/"+ self.lang
@@ -150,7 +149,7 @@ class LearningSkill(FallbackSkill):
                 except:
                     self.add_category(cat)
             if Category is None:        
-                self.speak_dialog("invalid.category")
+                self.speak_dialog("invalid.category", data={'categorys': self.allow_category})
                 return
         #privacy = self.public_path
         if saved_utt is None:
@@ -317,6 +316,7 @@ class LearningSkill(FallbackSkill):
 
     def intent_match(self, saved_utt, skill):
         vocs = []
+        best_match = [0.5]
         if self.lang_path == None:
             path = skill.path
         else:
@@ -331,15 +331,23 @@ class LearningSkill(FallbackSkill):
                     #self.log.info("test2"+str(self._lines_from_path(filename)))
                     match, confidence = match_one(saved_utt, self._lines_from_path(filename))
                     self.log.info("match "+str(match)+ " confidence "+ str(confidence))
-                    if confidence > 0.5:
-                        match, saved_utt = self.var_found(saved_utt, match)
-                        self.ask_save_intent_dialog(saved_utt, filename, match, skill)
-                        self.acknowledge()
-                        self.bus.emit(Message('recognizer_loop:utterance',
-                              {"utterances": [match],
-                               "lang": self.lang,
-                               "session": skill.name}))
-                        break
+                    if confidence > best_match[0]:
+                        self.log.info("better match "+str(match)+ " confidence "+ str(confidence))
+                        best_match = [confidence, saved_utt, filename, match, skill]
+                        self.log.info("save"+str(best_match))
+            else:
+                self.log.info(str(best_match[0])+" and")
+                if len(best_match) > 1:   
+                    match, saved_utt = self.var_found(best_match[1], best_match[3])
+                    self.ask_save_intent_dialog(best_match[1], best_match[2], best_match[3], best_match[4])
+                    self.acknowledge()
+                    self.bus.emit(Message('recognizer_loop:utterance',
+                                  {"utterances": [match],
+                                   "lang": self.lang,
+                                   "session": skill.name}))
+                else:
+                    self.speak_dialog("no.old.inquiry")
+                break
                 #### for voc files
                 if filename.endswith('.voc'):
                     vocs = vocs + [filename]
