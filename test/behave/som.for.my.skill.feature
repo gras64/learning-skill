@@ -1,4 +1,5 @@
 Feature: Something for my skill
+
     Scenario: Something for my reminder
         Given an english speaking user
         When the user says "you should reminding me of eating around 8 o'clock" 
@@ -6,5 +7,7 @@ Feature: Something for my skill
         And the user replies "how would it be with the reminder skill"
         Then "learning" should reply with dialog from "save.update.dialog"
         And the user replies "yes"
-        Then "reminder" should reply with dialog from "SavingReminderTomorrow.dialog"
+        Then "reminder" should reply with dialog from "ParticularTime.dialog"
+        Then delete learn Something for my skill
+
         

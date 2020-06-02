@@ -59,16 +59,13 @@ class LearningSkill(FallbackSkill):
                             self.save_action)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
         skillfolder = Configuration.get()['skills']['directory']
-        self.log.info(skillfolder+"/PootleSync/mycroft-skills")
+        self.lang_paths = []
         if 'translations_dir' in Configuration.get(): ##path of second language files
-            self.lang_path = Configuration.get()['translations_dir']
+            self.lang_paths.append(Configuration.get()['translations_dir'])
             self.log.info("set lang path to translation_dir")
-        elif os.path.isdir(skillfolder+"/PootleSync/mycroft-skills"):
-            self.lang_path = skillfolder+"/PootleSync/mycroft-skills"
+        elif os.path.isdir(os.path.expanduser(skillfolder+"/PootleSync/mycroft-skills")):
+            self.lang_paths.append(os.path.expanduser(skillfolder+"/PootleSync/mycroft-skills"))
             self.log.info("set lang path to PootleSync")
-        else:
-            self.lang_path = None
-            self.log.info("set lang path to skill path")
 
     def add_category(self, cat):
         path = self.file_system.path + "/category/"+ self.lang
@@ -276,27 +273,34 @@ class LearningSkill(FallbackSkill):
                 #self.log.info(intent)'''
 
 
-    def dialog_match(self, saved_dialog, skill):        
-        if self.lang_path == None:
-            path = skill.path
+    def dialog_match(self, saved_dialog, skill):
+        paths = []
+        for folder in self.lang_paths:
+                try:
+                    paths.append(folder+match_one(skill.name, os.listdir(folder)))
+                    self.log.info("skip folder"+folder)
+                except:
+                    pass
         else:
-            path = self.lang_path+"/"+skill.name
-        for root, dirs, files in os.walk(path):
-            for f in files:
+            paths.append(skill.path)
+            self.log.info(paths)
+        for path in paths:        
+            for root, dirs, files in os.walk(path):
+                for f in files:
                 ### for intent files
-                filename = os.path.join(root, f)
-                if self.lang in filename: ## reduce selection to reduce load list size
-                    if filename.endswith(".dialog"):
-                        match, confidence = match_one(self.saved_answer, self._lines_from_path(filename))
-                        self.log.info("match "+str(match)+ " confidence "+ str(confidence))
-                        if confidence > 0.8:
-                            saved_utt = self.get_response("found.output", data={"match": match})
-                            if saved_utt is not None:
-                                match, saved_utt = self.var_found(saved_utt, match)
-                                self.ask_save_intent_dialog(saved_utt, filename, match, skill)
-                                self.acknowledge()
-                            else:
-                                self.speak_dialog("cancel")
+                    filename = os.path.join(root, f)
+                    if self.lang in filename: ## reduce selection to reduce load list size
+                        if filename.endswith(".dialog"):
+                            match, confidence = match_one(self.saved_answer, self._lines_from_path(filename))
+                            self.log.info("match "+str(match)+ " confidence "+ str(confidence))
+                            if confidence > 0.8:
+                                saved_utt = self.get_response("found.output", data={"match": match})
+                                if saved_utt is not None:
+                                    match, saved_utt = self.var_found(saved_utt, match)
+                                    self.ask_save_intent_dialog(saved_utt, filename, match, skill)
+                                    self.acknowledge()
+                                else:
+                                    self.speak_dialog("cancel")
 
                     #i = filename.replace(".dialog", "")
 
@@ -317,43 +321,51 @@ class LearningSkill(FallbackSkill):
     def intent_match(self, saved_utt, skill):
         vocs = []
         best_match = [0.5]
-        if self.lang_path == None:
-            path = skill.path
+        paths = []
+        for folder in self.lang_paths:
+                try:
+                    paths.append(folder+match_one(skill.name, os.listdir(folder)))
+                    self.log.info("skip folder"+folder)
+                except:
+                    pass
         else:
-            path = self.lang_path+"/"+skill.name
-        for root, dirs, files in os.walk(path):
-            for f in files:
-                ### for intent files
-                filename = os.path.join(root, f)
-                if filename.endswith(".intent"):
-                    i = filename.replace(".intent", "")
-                    #for l in self.read_intent_lines(i, filename):
-                    #self.log.info("test2"+str(self._lines_from_path(filename)))
-                    match, confidence = match_one(saved_utt, self._lines_from_path(filename))
-                    self.log.info("match "+str(match)+ " confidence "+ str(confidence))
-                    if confidence > best_match[0]:
-                        self.log.info("better match "+str(match)+ " confidence "+ str(confidence))
-                        best_match = [confidence, saved_utt, filename, match, skill]
-                        self.log.info("save"+str(best_match))
-            else:
-                self.log.info(str(best_match[0])+" and")
-                if len(best_match) > 1:   
-                    match, saved_utt = self.var_found(best_match[1], best_match[3])
-                    self.ask_save_intent_dialog(best_match[1], best_match[2], best_match[3], best_match[4])
-                    self.acknowledge()
-                    self.bus.emit(Message('recognizer_loop:utterance',
+            paths.append(skill.path)
+            self.log.info(paths)
+        for path in paths:
+            self.log.info("search on path "+path)
+            for root, dirs, files in os.walk(path):
+                for f in files:
+                    ### for intent files
+                    filename = os.path.join(root, f)
+                    if filename.endswith(".intent"):
+                        i = filename.replace(".intent", "")
+                        #for l in self.read_intent_lines(i, filename):
+                        #self.log.info("test2"+str(self._lines_from_path(filename)))
+                        match, confidence = match_one(saved_utt, self._lines_from_path(filename))
+                        self.log.info("match "+str(match)+ " confidence "+ str(confidence))
+                        if confidence > best_match[0]:
+                            self.log.info("better match "+str(match)+ " confidence "+ str(confidence))
+                            best_match = [confidence, saved_utt, filename, match, skill]
+                            self.log.info("save"+str(best_match))
+        else:
+            self.log.info(str(best_match[0])+" and")
+            if len(best_match) > 1:   
+                match, saved_utt = self.var_found(best_match[1], best_match[3])
+                self.ask_save_intent_dialog(best_match[1], best_match[2], best_match[3], best_match[4])
+                self.acknowledge()
+                match = self.filter_sentence(match)
+                self.bus.emit(Message('recognizer_loop:utterance',
                                   {"utterances": [match],
                                    "lang": self.lang,
                                    "session": skill.name}))
-                else:
-                    self.speak_dialog("no.old.inquiry")
-                break
+            else:
+                self.speak_dialog("no.old.inquiry")
                 #### for voc files
-                if filename.endswith('.voc'):
-                    vocs = vocs + [filename]
-            exefile = skill.path+"/__init__.py"
-            self.log.info(str(vocs))
-            self.match_vocs(exefile, vocs)
+                #if filename.endswith('.voc'):
+                #    vocs = vocs + [filename]
+            #exefile = skill.path+"/__init__.py"
+            #self.log.info(str(vocs))
+            #self.match_vocs(exefile, vocs)
 
     def match_vocs(self, exefile, vocs):
         fobj = open(exefile).read()
@@ -398,10 +410,10 @@ class LearningSkill(FallbackSkill):
         if confirm_save != "yes":
             self.log.debug('new knowledge rejected')
             return  # user cancelled
-        if self.lang_path == None:
+        if self.lang_paths == None:
             path = self.save_path+"/"+skill.name+"/locale/"+self.lang+"/"
         else:
-            path = self.lang_path+"/"+skill.name+"/locale/"+self.lang+"/"  
+            path = self.lang_paths[0]+"/"+skill.name+"/locale/"+self.lang+"/"  
         filename = os.path.basename(filename)
         self.log.info("save querey"+str(path)+" filename "+filename+ "saved_utt "+saved_utt)
         self.write_file(path, saved_utt, filename)

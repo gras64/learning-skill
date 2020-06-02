@@ -1,5 +1,5 @@
 Feature: learn private 
-  Scenario: learn private
+  Scenario Outline: learn private
     Given an english speaking user
     When the user says "can you keep a secret"
     Then "learning" should reply with dialog from "begin.private.dialog"
