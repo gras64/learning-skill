@@ -1,1 +1,3 @@
-ich soll also auf die frage {{question}} mit {{answer}} antworten?
+ich soll also auf die Frage {{question}} mit {{answer}} antworten?
+wenn du möchtest werde ich mit {{answer}} antworten wenn du mich {{question}} Fragst.
+{{answer}} ist also die Antwort auf {{question}}
