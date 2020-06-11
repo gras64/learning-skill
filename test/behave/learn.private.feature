@@ -12,4 +12,5 @@ Feature: learn private
     And the user replies "because nobody went to watch forest to straighten them"
     Then "learning" should reply with "So I'm supposed to answer the question why is the banana crooked with because nobody went to watch forest to straighten them?"
     And the user replies "yes"
+    Then wait some time
     Then delete learn private

@@ -5,6 +5,7 @@ Feature: learn public
      When the user says "may i teach you something"
      Then "learning" should reply with dialog from "begin.learning.dialog"
      And the user says "top"
+     Then wait some time
      Then "learning" should reply with dialog from "invalid.category.dialog"
 
   Scenario: learn public
@@ -20,4 +21,5 @@ Feature: learn public
      And the user replies "because nobody went to watch forest to straighten them"
      Then "learning" should reply with "So I'm supposed to answer the question why is the banana crooked with because nobody went to watch forest to straighten them?"
      And the user replies "yes"
+     Then wait some time
      Then delete learn public

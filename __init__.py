@@ -229,17 +229,24 @@ class LearningSkill(FallbackSkill):
         else:
             skills = [skill for skill in self.msm.all_skills if skill.is_local]
             for skill in skills:
+                paths = []
                 if eskill in skill.name:
-                    if self.lang_path == None:
-                        path = skill.path
-                    else:
-                        path = self.lang_path+"/"+skill.name
+                    for folder in self.lang_paths:
+                        try:
+                            paths.append(folder+match_one(skill.name, os.listdir(folder)))
+                            self.log.info("skip folder"+folder)
+                        except:
+                            pass
+                else:
+                    paths.append(skill.path)
+                    self.log.info(paths)
+                for path in paths:
                     self.speak_dialog("read.for")
                     for root, dirs, files in os.walk(path):
                         for f in files:
                         ### for dialog files
                             filename = os.path.join(root, f)
-                            if filename.endswith(".dialog"):
+                            if filename.endswith(".dialog") and self.lang in filename:
                                 e = filename
                                 lines = open(e).read().splitlines()
                                 self.log.info(str(lines))
@@ -291,16 +298,20 @@ class LearningSkill(FallbackSkill):
                     filename = os.path.join(root, f)
                     if self.lang in filename: ## reduce selection to reduce load list size
                         if filename.endswith(".dialog"):
-                            match, confidence = match_one(self.saved_answer, self._lines_from_path(filename))
-                            self.log.info("match "+str(match)+ " confidence "+ str(confidence))
-                            if confidence > 0.8:
-                                saved_utt = self.get_response("found.output", data={"match": match})
-                                if saved_utt is not None:
-                                    match, saved_utt = self.var_found(saved_utt, match)
-                                    self.ask_save_intent_dialog(saved_utt, filename, match, skill)
-                                    self.acknowledge()
-                                else:
-                                    self.speak_dialog("cancel")
+                            try:
+                                match, confidence = match_one(self.saved_answer, self._lines_from_path(filename))
+                                self.log.info("match "+str(match)+ " confidence "+ str(confidence))
+                                if confidence > 0.8:
+                                    saved_utt = self.get_response("found.output", data={"match": match})
+                                    if saved_utt is not None:
+                                        match, saved_utt = self.var_found(saved_utt, match)
+                                        self.ask_save_intent_dialog(saved_utt, filename, match, skill)
+                                        self.acknowledge()
+                                    else:
+                                        self.speak_dialog("cancel")
+                            except:
+                                self.log.info("fail load match: "+filename)
+
 
                     #i = filename.replace(".dialog", "")
 
@@ -341,12 +352,15 @@ class LearningSkill(FallbackSkill):
                         i = filename.replace(".intent", "")
                         #for l in self.read_intent_lines(i, filename):
                         #self.log.info("test2"+str(self._lines_from_path(filename)))
-                        match, confidence = match_one(saved_utt, self._lines_from_path(filename))
-                        self.log.info("match "+str(match)+ " confidence "+ str(confidence))
-                        if confidence > best_match[0]:
-                            self.log.info("better match "+str(match)+ " confidence "+ str(confidence))
-                            best_match = [confidence, saved_utt, filename, match, skill]
-                            self.log.info("save"+str(best_match))
+                        try:
+                            match, confidence = match_one(saved_utt, self._lines_from_path(filename))
+                            self.log.info("match "+str(match)+ " confidence "+ str(confidence))
+                            if confidence > best_match[0]:
+                                self.log.info("better match "+str(match)+ " confidence "+ str(confidence))
+                                best_match = [confidence, saved_utt, filename, match, skill]
+                                self.log.info("save"+str(best_match))
+                        except:
+                                self.log.info("fail load intent: "+filename)
         else:
             self.log.info(str(best_match[0])+" and")
             if len(best_match) > 1:   
