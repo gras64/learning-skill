@@ -9,5 +9,6 @@ Feature: Something for my skill
         Then "learning" should reply with dialog from "save.update.dialog"
         And the user replies "yes"
         Then "reminder" should reply with dialog from "ParticularTime.dialog"
+        And the user replies "no"
         Then wait some time
         Then delete learn Something for my skill

@@ -63,9 +63,42 @@ class LearningSkill(FallbackSkill):
         if 'translations_dir' in Configuration.get(): ##path of second language files
             self.lang_paths.append(Configuration.get()['translations_dir'])
             self.log.info("set lang path to translation_dir")
-        elif os.path.isdir(os.path.expanduser(skillfolder+"/PootleSync/mycroft-skills")):
+        if os.path.isdir(os.path.expanduser(skillfolder+"/PootleSync/mycroft-skills")):
             self.lang_paths.append(os.path.expanduser(skillfolder+"/PootleSync/mycroft-skills"))
             self.log.info("set lang path to PootleSync")
+        ##intents
+        self.register_intent_file('will_let_you_know.intent', self.will_let_you_know_intent)
+        self.register_intent_file('say.differently.intent', self.say_differently_intent)
+        self.register_intent_file('work.on.dialog.intent', self.work_on_dialog)
+        self.register_intent_file('something_for_my_skill.intent', self.something_for_my_skill_intent)
+        self.paths_gen("joke")
+        #self.log.info(self.paths_gen("learning"))
+
+    def paths_gen(self, skill=None):
+        if skill is None:
+            skill = self.get_response("what.skill")
+        if skill is None:
+            self.speak_dialog("cancel")
+            return
+        else:
+            if type(skill) is str:
+                skill = self.get_skill(skill)
+        paths = []
+        for folder in self.lang_paths:
+            try:
+                match, d = match_one(skill.name.replace("mycroft-", "").replace("skill", ""), os.listdir(folder))
+                paths.append(folder+"/"+match)
+            except:
+                self.log.info("skip folder"+folder)
+                pass
+        else:
+            try:
+                paths.append(skill.path)
+            except:
+                self.log.info("no skill path")
+                pass
+        self.log.info("test "+str(paths))
+        return paths                
 
     def add_category(self, cat):
         path = self.file_system.path + "/category/"+ self.lang
@@ -128,7 +161,7 @@ class LearningSkill(FallbackSkill):
 
     @intent_handler(IntentBuilder("HandleInteraction").require("Query").optionally("Something").
                     optionally("Private").require("Learning"))
-    def handle_interaction(self, message, Category=None, saved_utt=None):
+    def handle_learning(self, message, Category=None, saved_utt=None):
         private = message.data.get("Private", None)
         if private is None:
             privacy = self.public_path
@@ -193,7 +226,6 @@ class LearningSkill(FallbackSkill):
         self.saved_utt = message.data['utterance']
         self.log.info('save utterance for learning')
 
-    @intent_file_handler('will_let_you_know.intent')
     def will_let_you_know_intent(self, message):
         catego = message.data.get("category")
         Category = None
@@ -208,9 +240,8 @@ class LearningSkill(FallbackSkill):
         else:
             saved_utt = None
         self.log.info("find Category: "+str(Category)+" and saved  utt: "+str(saved_utt))
-        self.handle_interaction(message, Category, saved_utt)
+        self.handle_learning(message, Category, saved_utt)
 
-    @intent_file_handler('say.differently.intent')
     def say_differently_intent(self, message):
         self.saved_answer = self.save_answer
         skills = [skill for skill in self.msm.all_skills if skill.is_local]
@@ -218,55 +249,43 @@ class LearningSkill(FallbackSkill):
             if not self.saved_answer is None:
                 self.dialog_match(self.saved_answer, skill)
 
-    @intent_file_handler("work.on.dialog.intent")
     def work_on_dialog(self, message):
-        eskill = message.data.get("skill", None)
-        if eskill is None:
-            eskill = self.get_response("what.skill")
-        if eskill is None:
-            self.speak_dialog("cancel")
-            return
-        else:
-            skills = [skill for skill in self.msm.all_skills if skill.is_local]
-            for skill in skills:
-                paths = []
-                if eskill in skill.name:
-                    for folder in self.lang_paths:
-                        try:
-                            paths.append(folder+match_one(skill.name, os.listdir(folder)))
-                            self.log.info("skip folder"+folder)
-                        except:
-                            pass
-                else:
-                    paths.append(skill.path)
-                    self.log.info(paths)
-                for path in paths:
-                    self.speak_dialog("read.for")
-                    for root, dirs, files in os.walk(path):
-                        for f in files:
-                        ### for dialog files
-                            filename = os.path.join(root, f)
-                            if filename.endswith(".dialog") and self.lang in filename:
-                                e = filename
-                                lines = open(e).read().splitlines()
-                                self.log.info(str(lines))
-                                confirm = self.ask_yesno(lines[0])
-                                if confirm == "yes":
-                                    match = lines[0]
-                                    saved_utt = self.get_response("found.output", data={"match": match})
-                                    if saved_utt is not None:
-                                        match, saved_utt = self.var_found(saved_utt, match)
-                                        self.ask_save_intent_dialog(saved_utt, filename, match, skill)
-                                        a = self.ask_yesno("continue")
-                                        if a == "yes":
-                                            continue
-                                        else:
-                                            self.acknowledge()
-                                            return True
-                                    else:
-                                        self.speak_dialog("cancel")
+        skill = self.get_skill(message.data.get("skill", None))
+        for path in self.paths_gen(skill):
+            self.speak_dialog("read.for")
+            for root, dirs, files in os.walk(path):
+                for f in files:
+                    ### for dialog files
+                    filename = os.path.join(root, f)
+                    if filename.endswith(".dialog") and self.lang in filename:
+                        e = open(filename, 'r')
+                        self.log.info("filename "+filename)
+                        line = e.readline()
+                        self.log.info(str(line))
+                        confirm = self.ask_yesno("line", data={"line":self.dialog_renderer.render(line)})
+                        if confirm == "yes":
+                            match = line[:10]
+                            saved_utt = self.get_response("found.output", data={"match": match})
+                            self.log.info("utt "+str(saved_utt))
+                            while saved_utt is None:
+                                saved_utt = self.get_response("found.output", data={"match": match})
+                            else:
+                                self.log.info("bevor match "+str(saved_utt))
+                                match, saved_utt = self.var_found(saved_utt, match)
+                                self.log.info("after match "+str(saved_utt))
+                                self.ask_save_intent_dialog(saved_utt, filename, match, skill)
+                                self.log.info("after save "+str(saved_utt))
+                                a = self.ask_yesno("continue")
+                                if a == "yes":
+                                    continue
                                 else:
-                                    self.speak_dialog("cancel")
+                                    self.acknowledge()
+                                    return True
+                        else:
+                            continue
+                                #self.speak_dialog("cancel")
+                        #else:
+                         #   self.speak_dialog("cancel")
                                     
  ###   def test(self):
         '''container = IntentContainer()
@@ -281,17 +300,7 @@ class LearningSkill(FallbackSkill):
 
 
     def dialog_match(self, saved_dialog, skill):
-        paths = []
-        for folder in self.lang_paths:
-                try:
-                    paths.append(folder+match_one(skill.name, os.listdir(folder)))
-                    self.log.info("skip folder"+folder)
-                except:
-                    pass
-        else:
-            paths.append(skill.path)
-            self.log.info(paths)
-        for path in paths:        
+        for path in self.paths_gen(skill):        
             for root, dirs, files in os.walk(path):
                 for f in files:
                 ### for intent files
@@ -315,8 +324,6 @@ class LearningSkill(FallbackSkill):
 
                     #i = filename.replace(".dialog", "")
 
-
-    @intent_file_handler('something_for_my_skill.intent')
     def something_for_my_skill_intent(self, message):
         utt_skill = message.data['skill']
         skills = [skill for skill in self.msm.all_skills if skill.is_local]
@@ -332,17 +339,7 @@ class LearningSkill(FallbackSkill):
     def intent_match(self, saved_utt, skill):
         vocs = []
         best_match = [0.5]
-        paths = []
-        for folder in self.lang_paths:
-                try:
-                    paths.append(folder+match_one(skill.name, os.listdir(folder)))
-                    self.log.info("skip folder"+folder)
-                except:
-                    pass
-        else:
-            paths.append(skill.path)
-            self.log.info(paths)
-        for path in paths:
+        for path in self.paths_gen(skill):
             self.log.info("search on path "+path)
             for root, dirs, files in os.walk(path):
                 for f in files:
@@ -424,7 +421,7 @@ class LearningSkill(FallbackSkill):
         if confirm_save != "yes":
             self.log.debug('new knowledge rejected')
             return  # user cancelled
-        if self.lang_paths == None:
+        if self.lang_paths == []:
             path = self.save_path+"/"+skill.name+"/locale/"+self.lang+"/"
         else:
             path = self.lang_paths[0]+"/"+skill.name+"/locale/"+self.lang+"/"  
@@ -442,6 +439,13 @@ class LearningSkill(FallbackSkill):
 
         return sentence
 
+    def get_skill(self, skill):
+        skill = self.find_skill(skill, local=True)
+        skills = [skill for skill in self.msm.all_skills if skill.is_local]
+        for eskill in skills:
+            if str(skill) in eskill.name:
+                self.log.info(eskill.name)
+                return eskill
 
     
     def find_skill(self, param, local): #### From installer skill

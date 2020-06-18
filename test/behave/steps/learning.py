@@ -42,4 +42,4 @@ def delete_learn_complete_answers(self):
 
 @then('wait some time')
 def wait_some_time(self):
-    time.sleep(6)
+    time.sleep(4)
