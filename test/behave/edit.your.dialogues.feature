@@ -10,5 +10,6 @@ Feature: edit your dialogues
         And the user replies "I couldn't find that date for you"
         Then "learning" should reply with dialog from "save.update.dialog"
         And the user replies "no"
+        Then wait some time
         Then "learning" should reply with dialog from "continue.dialog"
         And the user replies "no"

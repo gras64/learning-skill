@@ -5,6 +5,7 @@ Feature: learn public
      When the user says "may i teach you something"
      Then "learning" should reply with dialog from "begin.learning.dialog"
      And the user says "top"
+     Then wait some time
      Then "learning" should reply with dialog from "invalid.category.dialog"
 
   Scenario: learn public

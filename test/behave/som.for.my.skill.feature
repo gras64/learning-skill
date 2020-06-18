@@ -2,7 +2,7 @@ Feature: Something for my skill
 
     Scenario: Something for my reminder
         Given an english speaking user
-        When the user says "you should reminding me of eating around 8 o'clock"
+        When the user says "you should reminding me of eating"
         Then wait some time 
         Then "UnknownSkill" should reply with dialog from "unknown.dialog"
         And the user replies "how would it be with the reminder skill"
