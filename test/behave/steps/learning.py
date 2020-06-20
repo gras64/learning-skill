@@ -23,8 +23,8 @@ def delete_learn_something_for_my_skill(self):
     ### to do delete only new data
     elif os.path.isfile(os.path.expanduser("~/.mycroft/skills/PootleSync/mycroft-skills/mycroft-reminder/locale/en-us/SomethingReminder.intent")):
         os.remove(os.path.expanduser("~/.mycroft/skills/PootleSync/mycroft-skills/mycroft-reminder/locale/en-us/SomethingReminder.intent"))
-    elif os.path.isfile(os.path.expanduser("~/.mycroft/translation_dir/mycroft-reminder/locale/en-us/SomethingReminder.intent")):
-        os.remove(os.path.expanduser("~/.mycroft/translation_dir/mycroft-reminder/locale/en-us/SomethingReminder.intent"))
+    elif os.path.isfile(os.path.expanduser("~/.mycroft/translations/mycroft-reminder/locale/en-us/SomethingReminder.intent")):
+        os.remove(os.path.expanduser("~/.mycroft/translations/mycroft-reminder/locale/en-us/SomethingReminder.intent"))
     else:
         return False
 
@@ -35,11 +35,11 @@ def delete_learn_complete_answers(self):
     ### to do delete only new data
     elif os.path.isfile(os.path.expanduser("~/.mycroft/skills/PootleSync/mycroft-skills/mycroft-hello-world/locale/en-us/how.are.you.dialog")):
         os.remove(os.path.expanduser("~/.mycroft/skills/PootleSync/mycroft-skills/mycroft-hello-world/locale/en-us/how.are.you.dialog"))
-    elif os.path.isfile(os.path.expanduser("~/.mycroft/translation_dir/mycroft-hello-world/locale/en-us/how.are.you.dialog")):
-        os.remove(os.path.expanduser("~/.mycroft/translation_dir/mycroft-hello-world/locale/en-us/how.are.you.dialog"))
+    elif os.path.isfile(os.path.expanduser("~/.mycroft/translations/mycroft-hello-world/locale/en-us/how.are.you.dialog")):
+        os.remove(os.path.expanduser("~/.mycroft/translations/mycroft-hello-world/locale/en-us/how.are.you.dialog"))
     else:
         return False
 
 @then('wait some time')
 def wait_some_time(self):
-    time.sleep(3)
+    time.sleep(2)
