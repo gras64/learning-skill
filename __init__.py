@@ -55,6 +55,7 @@ class LearningSkill(FallbackSkill):
         if self.enable_fallback is True:
             self.register_fallback(self.handle_fallback, 6)
             self.register_fallback(self.handle_save_fallback, 99)
+        ############## todo: fallback load skill intents
             self.add_event('speak',
                             self.save_action)
         LOG.debug('Learning-skil-fallback enabled: %s' % self.enable_fallback)
@@ -71,8 +72,6 @@ class LearningSkill(FallbackSkill):
         self.register_intent_file('say.differently.intent', self.say_differently_intent)
         self.register_intent_file('work.on.dialog.intent', self.work_on_dialog)
         self.register_intent_file('something_for_my_skill.intent', self.something_for_my_skill_intent)
-        self.paths_gen("joke")
-        #self.log.info(self.paths_gen("learning"))
 
     def paths_gen(self, skill=None):
         if skill is None:
@@ -283,20 +282,6 @@ class LearningSkill(FallbackSkill):
                                     return True
                         else:
                             continue
-                                #self.speak_dialog("cancel")
-                        #else:
-                         #   self.speak_dialog("cancel")
-                                    
- ###   def test(self):
-        '''container = IntentContainer()
-        #container = IntentContainer('intent_cache')
-        engine = IntentDeterminationEngine()
-        self.log.info("start test")
-        self.log.info(container.calc_intent("wie wird das wetter heute"))
-        for intent in self.engine.determine_intent(' '.join(sys.argv[1:])):
-            if intent.get('confidence') > 0:
-	            self.log.info(json.dumps(intent, indent=4))
-                #self.log.info(intent)'''
 
 
     def dialog_match(self, saved_dialog, skill):
@@ -321,7 +306,7 @@ class LearningSkill(FallbackSkill):
                             except:
                                 self.log.info("fail load match: "+filename)
 
-
+    #############todo load vocab files
                     #i = filename.replace(".dialog", "")
 
     def something_for_my_skill_intent(self, message):

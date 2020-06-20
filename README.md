@@ -91,7 +91,9 @@ Andreas Reinle(@gras64)
 ## Add a new category
 if you want to add a new category. you just have to add a category under mycroft ai. Mycroft will then ask you for the name in your language.
 
-
+## todo
+Dialog_Match: Support recognition of vocab files
+Fallback: load your own intentfile into suitable skills
 
 
 ## Category
