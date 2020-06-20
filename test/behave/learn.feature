@@ -5,15 +5,13 @@ Feature: learn public
      When the user says "may i teach you something"
      Then "learning" should reply with dialog from "begin.learning.dialog"
      And the user says "top"
-     Then wait some time
      Then "learning" should reply with dialog from "invalid.category.dialog"
 
   Scenario: learn public
     Given an english speaking user
-     When the user says "may i teach you something"
+     When the user says <may i teach you something"
      Then "learning" should reply with dialog from "begin.learning.dialog"
      And the user replies "funny"
-     Then wait some time
      Then "learning" should reply with dialog from "question.dialog"
      And the user replies "why is the banana crooked"
      Then "learning" should reply with dialog from "keywords.dialog"
