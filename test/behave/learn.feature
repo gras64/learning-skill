@@ -9,7 +9,7 @@ Feature: learn public
 
   Scenario: learn public
     Given an english speaking user
-     When the user says <may i teach you something"
+     When the user says "may i teach you something"
      Then "learning" should reply with dialog from "begin.learning.dialog"
      And the user replies "funny"
      Then "learning" should reply with dialog from "question.dialog"
