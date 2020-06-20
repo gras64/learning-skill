@@ -4,6 +4,7 @@ Feature: will let you know
         Given an english speaking user
         When the user says "how does jack pay for the tram"
         Then wait some time
+        Then wait some time
         Then "UnknownSkill" should reply with dialog from "unknown.dialog"
         And the user replies "that has something to do with humor"
         Then "learning" should reply with dialog from "keywords.dialog"
