@@ -103,8 +103,7 @@ class LearningSkill(FallbackSkill):
         path = self.file_system.path + "/category/"+ self.lang
         Category = self.get_response("add.category",
                                     data={"cat": cat})
-        if not os.path.isdir(path):
-            os.makedirs(path)
+        makedirs(path, exist_ok=True)
         save_category = open(path +"/"+ cat+'.voc', "w")
         save_category.write(cat)
         save_category.close()
@@ -209,8 +208,7 @@ class LearningSkill(FallbackSkill):
         self.write_file(question_path, question, keywords.replace(" ", ".")+".intent")
 
     def write_file(self, path, data, filename):
-        if not os.path.isdir(path):
-            os.makedirs(path)
+        makedirs(path, exist_ok=True)
         save_dialog = open(path+filename, "a")
         save_dialog.write(data+"\n")
         save_dialog.close()
